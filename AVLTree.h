@@ -13,13 +13,15 @@ typedef enum {
 template<class T>
 class Node {
 public:
-    int height;
+    int height{};
     T data;
     Node<T> *parent;
     Node<T> *left_son;
     Node<T> *right_son;
 
     explicit Node(const T &data) : height(0), data(data), parent(NULL), left_son(NULL), right_son(NULL) {}
+
+    Node() = default;
 
     Node(const Node<T> &to_copy) = default;
 
@@ -39,11 +41,11 @@ void Node<T>::update_height() {
 template<class T>
 class AVLTree {
 private:
-    Node<T> *root;
+    Node<T> *dummy_root;
     int size;
 
 public:
-    AVLTree() : root(NULL), size(0) {}
+    AVLTree() : dummy_root(new Node<T>()), size(0) {}
 
     AVLTree(const AVLTree<T> &);
 
@@ -56,6 +58,10 @@ public:
     AVLTreeResult remove(const T &data);
 
     AVLTreeResult find(const T &data, T *found_data);
+
+    Node<T> *root() const {
+        return dummy_root->left_son;
+    }
 };
 
 template<class T>
@@ -81,7 +87,8 @@ void destroy_tree(Node<T> *root) {
 
 template<class T>
 AVLTree<T>::AVLTree(const AVLTree<T> &to_copy) :
-        root(copy_tree(to_copy.root)), size(to_copy.size) {
+        dummy_root(new Node<T>()), size(to_copy.size) {
+    this->root() = copy_tree(to_copy.root(), dummy_root);
 }
 
 template<class T>
@@ -89,8 +96,8 @@ AVLTree<T> &AVLTree<T>::operator=(const AVLTree<T> &tree) {
     if (this == &tree) {
         return *this;
     }
-    destroy_tree(root);
-    root = copy_tree(tree.root, NULL);
+    destroy_tree(this->root()); //destroy the tree that begins at this->root()
+    this->root() = copy_tree(tree.root(), dummy_root);
     size = tree.size;
 
     return *this;
@@ -98,7 +105,7 @@ AVLTree<T> &AVLTree<T>::operator=(const AVLTree<T> &tree) {
 
 template<class T>
 AVLTree<T>::~AVLTree<T>() {
-    destroy_tree(root);
+    destroy_tree(dummy_root);
 }
 
 template<class T>
@@ -118,17 +125,47 @@ Node<T> *LL(Node<T> *v) {
     v_l->parent = v->parent;
     v->parent = v_l;
 
+    if (v_l->parent->left_son == v) {
+        v_l->parent->left_son = v_l;
+    } else {
+        v_l->parent->right_son = v_l;
+    }
+
     return v_l;
 }
 
 template<class T>
-Node<T> *RR(Node<T> *v){}
+Node<T> *RR(Node<T> *v) {
+    Node<T> *v_r = v->right_son;
+    v->right_son = v_r->left_son;
+    v_r->left_son = v;
+
+    v_r->update_height();
+    v->update_height();
+
+    v_r->parent = v->parent;
+    v->parent = v_r;
+
+    if (v_r->parent->left_son == v) {
+        v_r->parent->left_son = v_r;
+    } else {
+        v_r->parent->right_son = v_r;
+    }
+
+    return v_r;
+}
 
 template<class T>
-Node<T> *LR(Node<T> *v){}
+Node<T> *LR(Node<T> *c) {
+    RR(c->left_son);
+    return LL(c);
+}
 
 template<class T>
-Node<T> *RL(Node<T> *v){}
+Node<T> *RL(Node<T> *c) {
+    LL(c->right_son);
+    return RR(c);
+}
 
 template<class T>
 AVLTreeResult AVLTree<T>::insert(const T &data) {
