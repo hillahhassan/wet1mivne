@@ -13,19 +13,28 @@ typedef enum {
 template<class T>
 class Node {
 public:
+    int height;
     T data;
     Node<T> *parent;
     Node<T> *left_son;
     Node<T> *right_son;
 
-    explicit Node(const T &data) : data(data), parent(NULL), left_son(NULL), right_son(NULL) {}
+    explicit Node(const T &data) : height(0), data(data), parent(NULL), left_son(NULL), right_son(NULL) {}
 
-    Node(const Node<T> &to_copy) : data(to_copy.data), parent(NULL), left_son(NULL), right_son(NULL) {}
+    Node(const Node<T> &to_copy) = default;
 
     Node<T> &operator=(const Node<T> &node) = default;
 
     ~Node<T>() = default;
+
+    void update_height();
 };
+
+template<class T>
+void Node<T>::update_height() {
+    int max = right_son->height > left_son->height ? right_son->height : left_son->height;
+    height = max + 1;
+}
 
 template<class T>
 class AVLTree {
@@ -76,7 +85,7 @@ AVLTree<T>::AVLTree(const AVLTree<T> &to_copy) :
 }
 
 template<class T>
-AVLTree<T> & AVLTree<T>::operator=(const AVLTree<T> &tree) {
+AVLTree<T> &AVLTree<T>::operator=(const AVLTree<T> &tree) {
     if (this == &tree) {
         return *this;
     }
@@ -92,7 +101,39 @@ AVLTree<T>::~AVLTree<T>() {
     destroy_tree(root);
 }
 
+template<class T>
+int balance_factor(const Node<T> *root) {
+    return root->left_son->height - root->right_son->height;
+}
 
+template<class T>
+Node<T> *LL(Node<T> *v) {
+    Node<T> *v_l = v->left_son;
+    v->left_son = v_l->right_son;
+    v_l->right_son = v;
+
+    v->update_height();
+    v_l->update_height();
+
+    v_l->parent = v->parent;
+    v->parent = v_l;
+
+    return v_l;
+}
+
+template<class T>
+Node<T> *RR(Node<T> *v){}
+
+template<class T>
+Node<T> *LR(Node<T> *v){}
+
+template<class T>
+Node<T> *RL(Node<T> *v){}
+
+template<class T>
+AVLTreeResult AVLTree<T>::insert(const T &data) {
+
+}
 
 
 #endif //WET1MIVNE_AVLTREE_H
