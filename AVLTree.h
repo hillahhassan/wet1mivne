@@ -10,73 +10,75 @@ typedef enum {
     AVL_TREE_MEMORY_ALLOCATION_ERROR, AVL_TREE_ALREADY_EXISTS, AVL_TREE_DOES_NOT_EXIST, AVL_TREE_SUCCESS
 } AVLTreeResult;
 
-template<class T>
+template<class K, class T>
 class Node {
 public:
     int height{};
+    K key;
     T data;
-    Node<T> *parent;
-    Node<T> *left_son;
-    Node<T> *right_son;
+    Node<K, T> *parent{};
+    Node<K, T> *left_son{};
+    Node<K, T> *right_son{};
 
-    explicit Node(const T &data) : height(0), data(data), parent(NULL), left_son(NULL), right_son(NULL) {}
+    explicit Node(const K &key, const T &data) : height(0), key(key), data(data), parent(NULL), left_son(NULL),
+                                                 right_son(NULL) {}
 
     Node() = default;
 
-    Node(const Node<T> &to_copy) = default;
+    Node(const Node<K, T> &to_copy) = default;
 
-    Node<T> &operator=(const Node<T> &node) = default;
+    Node<K, T> &operator=(const Node<K, T> &node) = default;
 
-    ~Node<T>() = default;
+    ~Node<K, T>() = default;
 
     void update_height();
 };
 
-template<class T>
-void Node<T>::update_height() {
+template<class K, class T>
+void Node<K, T>::update_height() {
     int max = right_son->height > left_son->height ? right_son->height : left_son->height;
     height = max + 1;
 }
 
-template<class T>
+template<class K, class T>
 class AVLTree {
 private:
-    Node<T> *dummy_root;
+    Node<K, T> *dummy_root;
     int size;
 
-public:
-    AVLTree() : dummy_root(new Node<T>()), size(0) {}
+    Node<K, T> *root() const {
+        return dummy_root->left_son;
+    }
 
-    AVLTree(const AVLTree<T> &);
+public:
+    AVLTree() : dummy_root(new Node<K, T>()), size(0) {}
+
+    AVLTree(const AVLTree<K, T> &);
 
     ~AVLTree();
 
-    AVLTree<T> &operator=(const AVLTree<T> &);
+    AVLTree<K, T> &operator=(const AVLTree<K, T> &);
 
     AVLTreeResult insert(const T &data);
 
     AVLTreeResult remove(const T &data);
 
     AVLTreeResult find(const T &data, T *found_data);
-
-    Node<T> *root() const {
-        return dummy_root->left_son;
-    }
 };
 
-template<class T>
-Node<T> *copy_tree(Node<T> *root, Node<T> *new_parent) {
+template<class K, class T>
+Node<K, T> *copy_tree(Node<K, T> *root, Node<K, T> *new_parent) {
     if (root == NULL) {
         return NULL;
     }
-    Node<T> *new_root = new Node<T>(root);
+    Node<K, T> *new_root = new Node<K, T>(root);
     new_root->parent = new_parent;
     new_root->left_son = copy_tree(root->left_son, new_root);
     new_root->right_son = copy_tree(root->right_son, new_root);
 }
 
-template<class T>
-void destroy_tree(Node<T> *root) {
+template<class K, class T>
+void destroy_tree(Node<K, T> *root) {
     if (root == NULL) {
         return;
     }
@@ -85,14 +87,14 @@ void destroy_tree(Node<T> *root) {
     delete root;
 }
 
-template<class T>
-AVLTree<T>::AVLTree(const AVLTree<T> &to_copy) :
-        dummy_root(new Node<T>()), size(to_copy.size) {
+template<class K, class T>
+AVLTree<K, T>::AVLTree(const AVLTree<K, T> &to_copy) :
+        dummy_root(new Node<K, T>()), size(to_copy.size) {
     this->root() = copy_tree(to_copy.root(), dummy_root);
 }
 
-template<class T>
-AVLTree<T> &AVLTree<T>::operator=(const AVLTree<T> &tree) {
+template<class K, class T>
+AVLTree<K, T> &AVLTree<K, T>::operator=(const AVLTree<K, T> &tree) {
     if (this == &tree) {
         return *this;
     }
@@ -103,19 +105,19 @@ AVLTree<T> &AVLTree<T>::operator=(const AVLTree<T> &tree) {
     return *this;
 }
 
-template<class T>
-AVLTree<T>::~AVLTree<T>() {
+template<class K, class T>
+AVLTree<K, T>::~AVLTree<K, T>() {
     destroy_tree(dummy_root);
 }
 
-template<class T>
-int balance_factor(const Node<T> *root) {
+template<class K, class T>
+int balance_factor(const Node<K, T> *root) {
     return root->left_son->height - root->right_son->height;
 }
 
-template<class T>
-Node<T> *LL(Node<T> *v) {
-    Node<T> *v_l = v->left_son;
+template<class K, class T>
+Node<K, T> *LL(Node<K, T> *v) {
+    Node<K, T> *v_l = v->left_son;
     v->left_son = v_l->right_son;
     v_l->right_son = v;
 
@@ -134,9 +136,9 @@ Node<T> *LL(Node<T> *v) {
     return v_l;
 }
 
-template<class T>
-Node<T> *RR(Node<T> *v) {
-    Node<T> *v_r = v->right_son;
+template<class K, class T>
+Node<K, T> *RR(Node<K, T> *v) {
+    Node<K, T> *v_r = v->right_son;
     v->right_son = v_r->left_son;
     v_r->left_son = v;
 
@@ -155,20 +157,20 @@ Node<T> *RR(Node<T> *v) {
     return v_r;
 }
 
-template<class T>
-Node<T> *LR(Node<T> *c) {
+template<class K, class T>
+Node<K, T> *LR(Node<K, T> *c) {
     RR(c->left_son);
     return LL(c);
 }
 
-template<class T>
-Node<T> *RL(Node<T> *c) {
+template<class K, class T>
+Node<K, T> *RL(Node<K, T> *c) {
     LL(c->right_son);
     return RR(c);
 }
 
-template<class T>
-AVLTreeResult AVLTree<T>::insert(const T &data) {
+template<class K, class T>
+AVLTreeResult AVLTree<K, T>::insert(const T &data) {
 
 }
 
