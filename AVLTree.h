@@ -59,11 +59,11 @@ public:
 
     AVLTree<K, T> &operator=(const AVLTree<K, T> &);
 
-    AVLTreeResult insert(const T &data);
+    AVLTreeResult insert(const K &key, const T &data);
 
-    AVLTreeResult remove(const T &data);
+    AVLTreeResult remove(const K &key);
 
-    AVLTreeResult find(const T &data, T *found_data);
+    AVLTreeResult find(const K &key, T *found_data);
 };
 
 template<class K, class T>
@@ -170,8 +170,85 @@ Node<K, T> *RL(Node<K, T> *c) {
 }
 
 template<class K, class T>
-AVLTreeResult AVLTree<K, T>::insert(const T &data) {
+Node<K, T> *find_aux(Node<K, T> *root, const K &key) {
+    if (root == NULL) {
+        return NULL;
+    }
 
+    if (root->key == key) {
+        return root;
+    } else if (root->key > key) {
+        return find_aux(root->left_son, key);
+    } else {
+        return find_aux(root->right_son, key);
+    }
+}
+
+template<class K, class T>
+Node<K, T> *find_last_node_in_search_path(Node<K, T> *root, const K &key) {
+    //will return a pointer to the leaf which we need to attach next element to
+    if (root == NULL) {
+        return NULL;
+    }
+
+    if (root->key == key) {
+        return root; //if the key exists then the last node in the search path is the node containing said key
+    }
+
+    if (root->key > key) {
+        if (root->left_son == NULL) {
+            return root;
+        }
+        return find_last_node_in_search_path(root->left_son, key);
+    } else {
+        if (root->right_son == NULL) {
+            return root;
+        }
+        return find_last_node_in_search_path(root->right_son, key);
+    }
+}
+
+
+template<class K, class T>
+AVLTreeResult AVLTree<K, T>::find(const K &key, T *found_data) {
+    Node<K, T> *found_node = find_aux(this->root(), key);
+    if (found_node == NULL) {
+        return AVL_TREE_DOES_NOT_EXIST;
+    }
+
+    *found_data = found_node->data;
+    return AVL_TREE_SUCCESS;
+}
+
+template<class K, class T>
+void balance_nodes_in_search_path(Node<K, T>* last_in_path){
+    //last_node = last node in search path (not last inserted)
+    last_in_path->update_height();
+
+
+}
+
+template<class K, class T>
+AVLTreeResult AVLTree<K, T>::insert(const K &key, const T &data) {
+
+    if (find_aux(this->root(), key) != NULL) {
+        return AVL_TREE_ALREADY_EXISTS;
+    }
+
+    Node<K, T> *parent_of_new_node = find_last_node_in_search_path(this->root(), key);
+
+    Node<K, T> *new_node = new Node<K, T>(key, data);
+
+    if(parent_of_new_node->key > key){
+        parent_of_new_node->left_son = new_node;
+    }
+    else{
+        parent_of_new_node->right_son = new_node;
+    }
+
+    new_node->parent = parent_of_new_node;
+
+    this->size++;
 }
 
 
