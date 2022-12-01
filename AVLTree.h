@@ -318,15 +318,55 @@ Node<K, T> *remove_with_one_child(Node<K, T> *to_remove) {
 
 template<class K, class T>
 Node<K, T> *remove_with_two_children(Node<K, T> *to_remove) {
-    Node<K, T> *next_inorder = to_remove->right_son;
+    Node<K, T> *next_inorder = to_remove->right_son; //no need to check for null since node for sure has two sons
     while (next_inorder->left_son != NULL) {
         next_inorder = next_inorder->left_son;
     }
+    Node<K, T> *next_in_order_old_parent = next_inorder->parent;
+    Node<K, T> *next_in_order_old_right_son = next_inorder->right_son;
+    Node<K, T> *to_remove_old_parent = to_remove->parent;
+
+
+    //update next_in_order
+    next_inorder->left_son = to_remove->left_son;
+    next_inorder->right_son = to_remove->right_son;
+    next_inorder->parent = to_remove->parent;
+
+    //update next_inorder parent
+    if (to_remove_old_parent->left_son == to_remove) {
+        to_remove_old_parent->left_son = next_inorder;
+    } else {
+        to_remove_old_parent->right_son = next_inorder;
+    }
+    //update to_remove
+    to_remove->left_son = NULL;
+    to_remove->right_son = next_in_order_old_right_son;
+    to_remove->parent = next_in_order_old_parent;
+
+    //update to_remove old parent
+    if (next_in_order_old_parent->left_son == to_remove) {
+        next_in_order_old_parent->left_son = to_remove;
+    } else {
+        next_in_order_old_parent->right_son = to_remove;
+    }
+
+    if(next_inorder->right_son != NULL){
+        remove_with_one_child(to_remove);
+    }
+    else{
+        remove_leaf(to_remove);
+    }
+
+    return next_inorder;
 }
 
 template<class K, class T>
 AVLTreeResult AVLTree<K, T>::remove(const K &key) {
-
+//find the node to remove
+//if its a leaf call remove_leaf
+//if it has one son call remove_with_one_son
+//otherwise call remove_with two_children
+//return appropriate error messages
 }
 
 
