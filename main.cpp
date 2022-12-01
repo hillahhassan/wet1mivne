@@ -1,6 +1,10 @@
 #include <iostream>
+#include "AVLTree.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    AVLTree<int, int> t1;
+    t1.insert(1, 1);
+
+
     return 0;
 }

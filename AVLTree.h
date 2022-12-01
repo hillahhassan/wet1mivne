@@ -82,6 +82,8 @@ public:
     AVLTreeResult remove(const K &key);
 
     AVLTreeResult find(const K &key, T *found_data);
+
+    void print_in_order_with_bf();
 };
 
 template<class K, class T>
@@ -108,7 +110,7 @@ void destroy_tree(Node<K, T> *root) {
 template<class K, class T>
 AVLTree<K, T>::AVLTree(const AVLTree<K, T> &to_copy) :
         dummy_root(new Node<K, T>()), size(to_copy.size) {
-    this->root() = copy_tree(to_copy.root(), dummy_root);
+    this->dummy_root->left_son = copy_tree(to_copy.root(), dummy_root);
 }
 
 template<class K, class T>
@@ -117,7 +119,7 @@ AVLTree<K, T> &AVLTree<K, T>::operator=(const AVLTree<K, T> &tree) {
         return *this;
     }
     destroy_tree(this->root()); //destroy the tree that begins at this->root()
-    this->root() = copy_tree(tree.root(), dummy_root);
+    this->dummy_root->left_son = copy_tree(tree.root(), dummy_root);
     size = tree.size;
 
     return *this;
@@ -236,6 +238,9 @@ AVLTreeResult AVLTree<K, T>::find(const K &key, T *found_data) {
 template<class K, class T>
 void AVLTree<K, T>::balance_nodes_in_search_path(Node<K, T> *last_in_path) {
     //last_node = last node in search path (not the inserted/ removed node)
+    if (last_in_path == NULL) {
+        return;
+    }
     last_in_path->update_height();
     if (last_in_path->balance_factor() == 2) {
         if (last_in_path->left_son->balance_factor() >= 0) {
@@ -269,21 +274,28 @@ AVLTreeResult AVLTree<K, T>::insert(const K &key, const T &data) {
         return AVL_TREE_ALREADY_EXISTS;
     }
 
+    this->size++;
+
     Node<K, T> *parent_of_new_node = find_last_node_in_search_path(this->root(), key);
 
     Node<K, T> *new_node = new Node<K, T>(key, data);
 
-    if (parent_of_new_node->key > key) {
-        parent_of_new_node->left_son = new_node;
+    if (parent_of_new_node == NULL) { //epmty tree
+        this->dummy_root->left_son = new_node;
+        new_node->parent = this->dummy_root;
     } else {
-        parent_of_new_node->right_son = new_node;
+        if (parent_of_new_node->key > key) {
+            parent_of_new_node->left_son = new_node;
+        } else {
+            parent_of_new_node->right_son = new_node;
+        }
+
+        new_node->parent = parent_of_new_node;
+
+        this->balance_nodes_in_search_path(parent_of_new_node);
     }
 
-    new_node->parent = parent_of_new_node;
-
-    this->size++;
-
-    this->balance_nodes_in_search_path(parent_of_new_node);
+    return AVL_TREE_SUCCESS;
 }
 
 template<class K, class T>
@@ -338,24 +350,29 @@ template<class K, class T>
 AVLTreeResult AVLTree<K, T>::remove(const K &key) {
 //find the node to remove
     Node<K, T> *node_to_remove = find_aux(this->root(), key);
-    if(node_to_remove == NULL){
+    if (node_to_remove == NULL) {
         return AVL_TREE_DOES_NOT_EXIST;
     }
 
-    Node<K, T>* parent_of_removed;
-    if(node_to_remove->left_son == NULL && node_to_remove->right_son == NULL){
+    Node<K, T> *parent_of_removed;
+    if (node_to_remove->left_son == NULL && node_to_remove->right_son == NULL) {
         parent_of_removed = remove_leaf(node_to_remove);
-    }
-    else if(node_to_remove->left_son != NULL && node_to_remove->right_son != NULL){
+    } else if (node_to_remove->left_son != NULL && node_to_remove->right_son != NULL) {
         parent_of_removed = remove_with_two_children(node_to_remove);
-    }
-    else{
+    } else {
         parent_of_removed = remove_with_one_child(node_to_remove);
     }
 
     this->size--;
 
     this->balance_nodes_in_search_path(parent_of_removed);
+
+    return AVL_TREE_SUCCESS;
+}
+
+template<class K, class T>
+void AVLTree<K, T>::print_in_order_with_bf() {
+
 }
 
 
