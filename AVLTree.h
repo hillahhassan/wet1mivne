@@ -322,51 +322,40 @@ Node<K, T> *remove_with_two_children(Node<K, T> *to_remove) {
     while (next_inorder->left_son != NULL) {
         next_inorder = next_inorder->left_son;
     }
-    Node<K, T> *next_in_order_old_parent = next_inorder->parent;
-    Node<K, T> *next_in_order_old_right_son = next_inorder->right_son;
-    Node<K, T> *to_remove_old_parent = to_remove->parent;
 
+    to_remove->key = next_inorder->key;
+    to_remove->data = next_inorder->data;
 
-    //update next_in_order
-    next_inorder->left_son = to_remove->left_son;
-    next_inorder->right_son = to_remove->right_son;
-    next_inorder->parent = to_remove->parent;
-
-    //update next_inorder parent
-    if (to_remove_old_parent->left_son == to_remove) {
-        to_remove_old_parent->left_son = next_inorder;
+    if (next_inorder->right_son != NULL) {
+        return remove_with_one_child(next_inorder); //returning the parent of the node we actually
+        // remove, so that we can make necessary updates and rotations upward
     } else {
-        to_remove_old_parent->right_son = next_inorder;
+        return remove_leaf(next_inorder);
     }
-    //update to_remove
-    to_remove->left_son = NULL;
-    to_remove->right_son = next_in_order_old_right_son;
-    to_remove->parent = next_in_order_old_parent;
-
-    //update to_remove old parent
-    if (next_in_order_old_parent->left_son == to_remove) {
-        next_in_order_old_parent->left_son = to_remove;
-    } else {
-        next_in_order_old_parent->right_son = to_remove;
-    }
-
-    if(next_inorder->right_son != NULL){
-        remove_with_one_child(to_remove);
-    }
-    else{
-        remove_leaf(to_remove);
-    }
-
-    return next_inorder;
 }
 
 template<class K, class T>
 AVLTreeResult AVLTree<K, T>::remove(const K &key) {
 //find the node to remove
-//if its a leaf call remove_leaf
-//if it has one son call remove_with_one_son
-//otherwise call remove_with two_children
-//return appropriate error messages
+    Node<K, T> *node_to_remove = find_aux(this->root(), key);
+    if(node_to_remove == NULL){
+        return AVL_TREE_DOES_NOT_EXIST;
+    }
+
+    Node<K, T>* parent_of_removed;
+    if(node_to_remove->left_son == NULL && node_to_remove->right_son == NULL){
+        parent_of_removed = remove_leaf(node_to_remove);
+    }
+    else if(node_to_remove->left_son != NULL && node_to_remove->right_son != NULL){
+        parent_of_removed = remove_with_two_children(node_to_remove);
+    }
+    else{
+        parent_of_removed = remove_with_one_child(node_to_remove);
+    }
+
+    this->size--;
+
+    this->balance_nodes_in_search_path(parent_of_removed);
 }
 
 
