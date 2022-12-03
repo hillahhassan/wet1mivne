@@ -13,17 +13,18 @@ typedef enum {
 template<class K, class T>
 class Node {
 public:
-    int height{};
+    int height;
     K key;
     T data;
-    Node<K, T> *parent{};
-    Node<K, T> *left_son{};
-    Node<K, T> *right_son{};
+    Node<K, T> *parent;
+    Node<K, T> *left_son;
+    Node<K, T> *right_son;
 
     explicit Node(const K &key, const T &data) : height(0), key(key), data(data), parent(NULL), left_son(NULL),
                                                  right_son(NULL) {}
 
-    Node() = default;
+    Node() : height(0), key(key), parent(NULL), left_son(NULL),
+             right_son(NULL){}
 
     Node(const Node<K, T> &to_copy) = default;
 
@@ -38,20 +39,35 @@ public:
 
 template<class K, class T>
 void Node<K, T>::update_height() {
-    int max = right_son->height > left_son->height ? right_son->height : left_son->height;
-    height = max + 1;
+    if(left_son != NULL && right_son != NULL) {
+        int max = right_son->height > left_son->height ? right_son->height : left_son->height;
+        height = max + 1;
+    }
+    else if(left_son != NULL){
+        height = left_son->height + 1;
+    }
+    else if(right_son != NULL){
+        height = right_son->height + 1;
+    }
+    else{
+        height = 0;
+    }
 }
 
 
 template<class K, class T>
 int Node<K, T>::balance_factor() {
     int bf = 0;
-    if (left_son != NULL) {
-        bf += left_son->height;
+    if (left_son != NULL && right_son != NULL) {
+        bf = left_son->height - right_son->height;
     }
-    if (right_son != NULL) {
-        bf -= right_son->height;
+    else if (left_son != NULL) {
+        bf = left_son->height + 1;
     }
+    else {
+        bf = -1 - right_son->height;
+    }
+
     return bf;
 }
 
@@ -61,10 +77,6 @@ class AVLTree {
 private:
     Node<K, T> *dummy_root;
     int size;
-
-    Node<K, T> *root() const {
-        return dummy_root->left_son;
-    }
 
     void balance_nodes_in_search_path(Node<K, T> *last_in_path); //we want access to root
 
@@ -84,6 +96,10 @@ public:
     AVLTreeResult find(const K &key, T *found_data);
 
     void print_in_order_with_bf();
+
+    Node<K, T> *root(){
+        return dummy_root->left_son;
+    }
 };
 
 template<class K, class T>
@@ -91,10 +107,12 @@ Node<K, T> *copy_tree(Node<K, T> *root, Node<K, T> *new_parent) {
     if (root == NULL) {
         return NULL;
     }
-    Node<K, T> *new_root = new Node<K, T>(root);
+    Node<K, T> *new_root = new Node<K, T>(*root);
     new_root->parent = new_parent;
     new_root->left_son = copy_tree(root->left_son, new_root);
     new_root->right_son = copy_tree(root->right_son, new_root);
+
+    return new_root;
 }
 
 template<class K, class T>
@@ -241,7 +259,13 @@ void AVLTree<K, T>::balance_nodes_in_search_path(Node<K, T> *last_in_path) {
     if (last_in_path == NULL) {
         return;
     }
+
+    if (last_in_path->parent->height >= last_in_path->height + 1) {
+        return;
+    }
+
     last_in_path->update_height();
+
     if (last_in_path->balance_factor() == 2) {
         if (last_in_path->left_son->balance_factor() >= 0) {
             last_in_path = LL(last_in_path);
@@ -260,16 +284,13 @@ void AVLTree<K, T>::balance_nodes_in_search_path(Node<K, T> *last_in_path) {
     if (last_in_path == this->root()) {
         return;
     }
-    if (last_in_path->parent->height >= last_in_path->height + 1) {
-        return;
-    }
 
     balance_nodes_in_search_path(last_in_path->parent);
 }
 
 template<class K, class T>
 AVLTreeResult AVLTree<K, T>::insert(const K &key, const T &data) {
-
+//check whether key already exists in the tree
     if (find_aux(this->root(), key) != NULL) {
         return AVL_TREE_ALREADY_EXISTS;
     }
