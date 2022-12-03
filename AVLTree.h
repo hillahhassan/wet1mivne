@@ -260,9 +260,6 @@ void AVLTree<K, T>::balance_nodes_in_search_path(Node<K, T> *last_in_path) {
         return;
     }
 
-    if (last_in_path->parent->height >= last_in_path->height + 1) {
-        return;
-    }
 
     last_in_path->update_height();
 
@@ -282,6 +279,10 @@ void AVLTree<K, T>::balance_nodes_in_search_path(Node<K, T> *last_in_path) {
     }
 
     if (last_in_path == this->root()) {
+        return;
+    }
+
+    if (last_in_path->parent->height >= last_in_path->height + 1) {
         return;
     }
 
