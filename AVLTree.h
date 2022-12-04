@@ -5,6 +5,8 @@
 #ifndef WET1MIVNE_AVLTREE_H
 #define WET1MIVNE_AVLTREE_H
 
+#include <cmath>
+
 
 typedef enum {
     AVL_TREE_MEMORY_ALLOCATION_ERROR, AVL_TREE_ALREADY_EXISTS, AVL_TREE_DOES_NOT_EXIST, AVL_TREE_SUCCESS
@@ -79,6 +81,8 @@ private:
 
 public:
     AVLTree() : dummy_root(new Node<K, T>()), size(0) {}
+
+    AVLTree(K sorted_key_array[], T sorted_data_array[], int size);
 
     AVLTree(const AVLTree<K, T> &);
 
@@ -405,6 +409,85 @@ void AVLTree<K, T>::print_inorder_with_bf() {
     std::cout << "Now printing tree in order " << std::endl;
     print_inorder_with_bf_aux(this->root());
     std::cout << std::endl;
+}
+
+template<class K, class T>
+Node<K, T> *complete_tree(int height, Node<K, T> *parent) {
+    if (height < 0) {
+        return NULL;
+    }
+
+    Node<K, T> *new_node = new Node<K, T>();
+    new_node->left_son = complete_tree(height - 1, new_node);
+    new_node->right_son = complete_tree(height - 1, new_node);
+    new_node->parent = parent;
+
+    new_node->update_height();
+
+    return new_node;
+}
+
+bool is_power_of_two(int n) {
+    return n > 0 && (n & (n - 1)) == 0;
+}
+
+int find_minimal_complete_tree_height(int size) {
+    do {
+        size++;
+    } while (!is_power_of_two(size));
+
+    return log2(size) - 1;
+}
+
+template<class K, class T>
+void make_almost_complete_tree(Node<K, T> *root, int *current_size_ptr, int final_size) {
+    //root is of complete tree, and we are erasing elements from right to left
+    if (root == NULL || *current_size_ptr == final_size) {
+        return;
+    }
+
+    make_almost_complete_tree(root->right_son, current_size_ptr, final_size);
+
+    if (root->left_son == NULL && root->right_son == NULL) {
+        if (root->parent->right_son == root) {
+            root->parent->right_son = NULL;
+        } else {
+            root->parent->left_son = NULL;
+        }
+        delete root;
+        *current_size_ptr--;
+    } else {
+        make_almost_complete_tree(root->left_son, current_size_ptr, final_size);
+    }
+}
+
+template<class K, class T>
+void populate_empty_tree(Node<K, T> *root, K key_array[], T data_array[], int size, int *iptr) {
+    if (root == NULL) {
+        return;
+    }
+
+    populate_empty_tree(root->left_son, key_array, data_array, size);
+
+    root->key = key_array[*iptr];
+    root->data = data_array[*iptr];
+    *iptr++;
+
+    populate_empty_tree(root->right_son, key_array, data_array, size);
+}
+
+
+template<class K, class T>
+AVLTree<K, T>::AVLTree(K sorted_key_array[], T sorted_data_array[], int size) : dummy_root(new Node<K, T>()), size(0) {
+    int height = find_minimal_complete_tree_height(size);
+    dummy_root->left_son = complete_tree(height, dummy_root);
+    int current_size = pow(2, height + 1) - 1;
+    make_almost_complete_tree(this->root(), &current_size, size);
+
+    this->size = size;
+
+    int i = 0;
+    populate_empty_tree(this->root(), sorted_key_array, sorted_data_array, size, &i);
 }
 
 
