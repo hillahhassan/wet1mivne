@@ -383,7 +383,9 @@ AVLTreeResult AVLTree<K, T>::remove(const K &key) {
 
     this->size--;
 
-    this->balance_nodes_in_search_path(parent_of_removed);
+    if (parent_of_removed != this->dummy_root) {
+        this->balance_nodes_in_search_path(parent_of_removed);
+    }
 
     return AVL_TREE_SUCCESS;
 }
