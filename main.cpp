@@ -11,13 +11,20 @@ public:
     player() = default;
 };
 int main() {
-    AVLTree<int, class player> player_tree;
+    AVLTree<int, player> player_tree;
+    player_tree.print_inorder_with_bf();
     player_tree.insert(1, player(1, 10, 17));
+    player_tree.print_inorder_with_bf();
     player_tree.insert(2, player(2, 10, 17));
+    player_tree.print_inorder_with_bf();
     player_tree.insert(3, player(3, 10, 17));
+    player_tree.print_inorder_with_bf();
     player_tree.insert(4, player(4, 10, 17));
+    player_tree.print_inorder_with_bf();
     player_tree.insert(5, player(5, 10, 17));
+    player_tree.print_inorder_with_bf();
     player_tree.insert(6, player(6, 10, 17));
+    player_tree.print_inorder_with_bf();
 
 
     //Node<int, class player>* copied_player_tree;

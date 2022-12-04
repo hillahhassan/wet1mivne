@@ -24,7 +24,7 @@ public:
                                                  right_son(NULL) {}
 
     Node() : height(0), key(key), parent(NULL), left_son(NULL),
-             right_son(NULL){}
+             right_son(NULL) {}
 
     Node(const Node<K, T> &to_copy) = default;
 
@@ -39,17 +39,14 @@ public:
 
 template<class K, class T>
 void Node<K, T>::update_height() {
-    if(left_son != NULL && right_son != NULL) {
+    if (left_son != NULL && right_son != NULL) {
         int max = right_son->height > left_son->height ? right_son->height : left_son->height;
         height = max + 1;
-    }
-    else if(left_son != NULL){
+    } else if (left_son != NULL) {
         height = left_son->height + 1;
-    }
-    else if(right_son != NULL){
+    } else if (right_son != NULL) {
         height = right_son->height + 1;
-    }
-    else{
+    } else {
         height = 0;
     }
 }
@@ -57,15 +54,15 @@ void Node<K, T>::update_height() {
 
 template<class K, class T>
 int Node<K, T>::balance_factor() {
-    int bf = 0;
+    int bf;
     if (left_son != NULL && right_son != NULL) {
         bf = left_son->height - right_son->height;
-    }
-    else if (left_son != NULL) {
-        bf = left_son->height + 1;
-    }
-    else {
+    } else if (left_son != NULL) {
+        bf = left_son->height - -1;
+    } else if (right_son != NULL) {
         bf = -1 - right_son->height;
+    } else {
+        bf = 0;
     }
 
     return bf;
@@ -95,9 +92,9 @@ public:
 
     AVLTreeResult find(const K &key, T *found_data);
 
-    void print_in_order_with_bf();
+    void print_inorder_with_bf();
 
-    Node<K, T> *root(){
+    Node<K, T> *root() {
         return dummy_root->left_son;
     }
 };
@@ -154,7 +151,7 @@ Node<K, T> *LL(Node<K, T> *v) {
     v->left_son = v_l->right_son;
     v_l->right_son = v;
 
-    v->update_height();
+    v->update_height(); //v is now the son, so update first
     v_l->update_height();
 
     v_l->parent = v->parent;
@@ -175,8 +172,8 @@ Node<K, T> *RR(Node<K, T> *v) {
     v->right_son = v_r->left_son;
     v_r->left_son = v;
 
+    v->update_height(); //update v first since now he is the son
     v_r->update_height();
-    v->update_height();
 
     v_r->parent = v->parent;
     v->parent = v_r;
@@ -259,7 +256,6 @@ void AVLTree<K, T>::balance_nodes_in_search_path(Node<K, T> *last_in_path) {
     if (last_in_path == NULL) {
         return;
     }
-
 
     last_in_path->update_height();
 
@@ -393,8 +389,20 @@ AVLTreeResult AVLTree<K, T>::remove(const K &key) {
 }
 
 template<class K, class T>
-void AVLTree<K, T>::print_in_order_with_bf() {
+void print_inorder_with_bf_aux(Node<K, T> *root) {
+    if (root == NULL) {
+        return;
+    }
+    print_inorder_with_bf_aux(root->left_son);
+    std::cout << "K:" << root->key << " h:" << root->height << " bf:" << root->balance_factor() << std::endl;
+    print_inorder_with_bf_aux(root->right_son);
+}
 
+template<class K, class T>
+void AVLTree<K, T>::print_inorder_with_bf() {
+    std::cout << "Now printing tree in order " << std::endl;
+    print_inorder_with_bf_aux(this->root());
+    std::cout << std::endl;
 }
 
 
