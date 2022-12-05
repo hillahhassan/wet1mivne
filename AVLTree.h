@@ -101,6 +101,8 @@ public:
     Node<K, T> *root() {
         return dummy_root->left_son;
     }
+
+    void sorted_keys_and_data(K key_array[], T data_array[]) const;
 };
 
 template<class K, class T>
@@ -462,22 +464,23 @@ void make_almost_complete_tree(Node<K, T> *root, int *current_size_ptr, int fina
 }
 
 template<class K, class T>
-void populate_empty_tree(Node<K, T> *root, K key_array[], T data_array[], int size, int *iptr) {
+void populate_empty_tree(Node<K, T> *root, K key_array[], T data_array[], int *iptr) {
     if (root == NULL) {
         return;
     }
 
-    populate_empty_tree(root->left_son, key_array, data_array, size);
+    populate_empty_tree(root->left_son, key_array, data_array, iptr);
 
     root->key = key_array[*iptr];
     root->data = data_array[*iptr];
     *iptr++;
 
-    populate_empty_tree(root->right_son, key_array, data_array, size);
+    populate_empty_tree(root->right_son, key_array, data_array, iptr);
 }
 
 
 template<class K, class T>
+// this c'tor will help us in unite teams, where will build a united tree out of a sorted array of the union of players from both teams
 AVLTree<K, T>::AVLTree(K sorted_key_array[], T sorted_data_array[], int size) : dummy_root(new Node<K, T>()), size(0) {
     int height = find_minimal_complete_tree_height(size);
     dummy_root->left_son = complete_tree(height, dummy_root);
@@ -487,8 +490,66 @@ AVLTree<K, T>::AVLTree(K sorted_key_array[], T sorted_data_array[], int size) : 
     this->size = size;
 
     int i = 0;
-    populate_empty_tree(this->root(), sorted_key_array, sorted_data_array, size, &i);
+    populate_empty_tree(this->root(), sorted_key_array, sorted_data_array, &i);
 }
 
+template<class K, class T>
+void inorder_tree_to_array(Node<K, T> *root, K key_array[], T data_array[], int *iptr) {
+    if (root == NULL) {
+        return;
+    }
+
+    inorder_tree_to_array(root->left_son, key_array, data_array, iptr);
+
+    key_array[*iptr] = root->key;
+    data_array[*iptr] = root->data;
+    *iptr++;
+
+    inorder_tree_to_array(root->right_son, key_array, data_array, iptr);
+}
+
+//copies tree data and keys into respective arrays
+template<class K, class T>
+void AVLTree<K, T>::sorted_keys_and_data(K key_array[], T data_array[]) const {
+    int i = 0;
+    inorder_tree_to_array(this->root(), key_array, data_array, &i);
+}
+
+//take two sorted data arrays and merge them into a single sorted data array
+//take two sorted key arrays and merge them into a single sorted key array
+
+template<class K, class T>
+void
+merge_key_arrays_and_data_arrays(K key_array1[], K key_array2[], T data_array1[], T data_array2[], int size1, int size2,
+                                 K merged_key_array[], T merged_data_array[]) {
+    int i1 = 0;
+    int i2 = 0;
+    int i3 = 0;
+
+    while (i1 < size1 && i2 < size2) {
+        if (key_array1[i1] < key_array2[i2]) {
+            merged_key_array[i3] = key_array1[i1];
+            merged_data_array[i3] = data_array1[i1];
+            i1++;
+        } else {
+            merged_key_array[i3] = key_array2[i2];
+            merged_data_array[i3] = data_array1[i2];
+            i2++;
+        }
+        i3++;
+    }
+    while (i1 < size1) {
+        merged_key_array[i3] = key_array1[i1];
+        merged_data_array[i3] = data_array1[i1];
+        i1++;
+        i3++;
+    }
+    while (i2 < size2) {
+        merged_key_array[i3] = key_array1[i2];
+        merged_data_array[i3] = data_array1[i2];
+        i2++;
+        i3++;
+    }
+}
 
 #endif //WET1MIVNE_AVLTREE_H
