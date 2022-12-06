@@ -79,6 +79,12 @@ private:
 
     void balance_nodes_in_search_path(Node<K, T> *last_in_path); //we want access to root
 
+    Node<K, T> *root() {
+        return dummy_root->left_son;
+    }
+
+    void to_sorted_keys_and_data(K key_array[], T data_array[]) const;
+
 public:
     AVLTree() : dummy_root(new Node<K, T>()), size(0) {}
 
@@ -98,11 +104,15 @@ public:
 
     void print_inorder_with_bf();
 
-    Node<K, T> *root() {
-        return dummy_root->left_son;
+    int get_size() const {
+        return this->size;
     }
 
-    void sorted_keys_and_data(K key_array[], T data_array[]) const;
+    static AVLTree<K, T> *merge_two_trees(AVLTree<K, T> *tree1, AVLTree<K, T> *tree2);
+
+    K *get_prev_inorder_cyclic(const K &) const;
+
+    K *get_next_inorder_cyclic(const K &) const;
 };
 
 template<class K, class T>
@@ -510,7 +520,7 @@ void inorder_tree_to_array(Node<K, T> *root, K key_array[], T data_array[], int 
 
 //copies tree data and keys into respective arrays
 template<class K, class T>
-void AVLTree<K, T>::sorted_keys_and_data(K key_array[], T data_array[]) const {
+void AVLTree<K, T>::to_sorted_keys_and_data(K key_array[], T data_array[]) const {
     int i = 0;
     inorder_tree_to_array(this->root(), key_array, data_array, &i);
 }
@@ -549,6 +559,57 @@ merge_key_arrays_and_data_arrays(K key_array1[], K key_array2[], T data_array1[]
         merged_data_array[i3] = data_array1[i2];
         i2++;
         i3++;
+    }
+}
+
+template<class K, class T>
+AVLTree<K, T> *AVLTree<K, T>::merge_two_trees(AVLTree<K, T> *tree1, AVLTree<K, T> *tree2) {
+
+}
+
+template<class K, class T>
+K *AVLTree<K, T>::get_prev_inorder_cyclic(const K &key) const {
+
+
+}
+
+
+template<class K, class T>
+K *AVLTree<K, T>::get_next_inorder_cyclic(const K &key) const {
+    //if k has right son then we go right once then left all the way
+    //if k has no right son but has parent that is bigger than k (meaning k is a left son of parent)
+    // then next in order is parent
+    //if k has no right son AND  k has no parent that is bigger than k (meaning k is right son of parent or k is the root)
+    // then next in order is the smallest in the tree.
+    if (this->size < 2) {
+        return NULL;
+    }
+    Node<K, T> *found_node = find_aux(this->root(), key);
+    if (found_node == NULL) {
+        return NULL;
+    }
+
+    if (found_node->right_son != NULL) {
+        found_node = found_node->right_son;
+        while (found_node->left_son != NULL) {
+            found_node = found_node->left_son;
+        }
+        return &found_node->key;
+    } else {
+        //we want to find the first ancestor that is greater than key
+        while (found_node != this->root()) {
+            if (found_node == found_node->parent->left_son) {
+                return &found_node->parent->key;
+            }
+            found_node = found_node->parent;
+        }
+        //if we are here we didn't find an ancestor that is greater, and we have no descendants that are greater
+        //therefore we are the greatest so we need to find the smallest
+        found_node = this->root();
+        while (found_node->left_son != NULL) {
+            found_node = found_node->left_son;
+        }
+        return &found_node->key;
     }
 }
 

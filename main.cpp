@@ -11,6 +11,7 @@ public:
     player() = default;
 };
 int main() {
+
     AVLTree<int, player> player_tree;
 //    player_tree.print_inorder_with_bf();
     player_tree.insert(2, player(1, 10, 17));
