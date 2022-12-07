@@ -124,8 +124,6 @@ private:
         return dummy_root->left_son;
     }
 
-    void to_sorted_keys_and_data(K key_array[], T data_array[]);
-
 public:
     AVLTree() : dummy_root(new Node<K, T>()), size(0) {}
 
@@ -154,6 +152,8 @@ public:
     K *get_prev_inorder(const K &);
 
     K *get_next_inorder(const K &);
+
+    void to_sorted_keys_and_data(K key_array[], T data_array[]);
 };
 
 template<class K, class T>
