@@ -77,7 +77,48 @@ private:
     Node<K, T> *dummy_root;
     int size;
 
-    void balance_nodes_in_search_path(Node<K, T> *last_in_path); //we want access to root
+    static Node<K, T> *copy_tree(Node<K, T> *root, Node<K, T> *new_parent);
+
+    static void destroy_tree(Node<K, T> *root);
+
+    static Node<K, T> *LL(Node<K, T> *v);
+
+    static Node<K, T> *RR(Node<K, T> *v);
+
+    static Node<K, T> *LR(Node<K, T> *c);
+
+    static Node<K, T> *RL(Node<K, T> *c);
+
+    static Node<K, T> *find_aux(Node<K, T> *root, const K &key);
+
+    static Node<K, T> *find_last_node_in_search_path(Node<K, T> *root, const K &key);
+
+    static void balance_nodes_in_search_path(Node<K, T> *last_in_path); //we want access to root
+
+    static Node<K, T> *remove_leaf(Node<K, T> *to_remove);
+
+    static Node<K, T> *remove_with_one_child(Node<K, T> *to_remove);
+
+    static Node<K, T> *remove_with_two_children(Node<K, T> *to_remove);
+
+    static void print_inorder_with_bf_aux(Node<K, T> *root);
+
+    static Node<K, T> *complete_tree(int height, Node<K, T> *parent);
+
+    static bool is_power_of_two(int n);
+
+    static int find_minimal_complete_tree_height(int size);
+
+    static void make_almost_complete_tree(Node<K, T> *root, int *current_size_ptr, int final_size);
+
+    static void populate_empty_tree(Node<K, T> *root, K key_array[], T data_array[], int *iptr);
+
+    static void inorder_tree_to_array(Node<K, T> *root, K key_array[], T data_array[], int *iptr);
+
+    static void
+    merge_key_arrays_and_data_arrays(K key_array1[], K key_array2[], T data_array1[], T data_array2[], int size1,
+                                     int size2,
+                                     K merged_key_array[], T merged_data_array[]);
 
     Node<K, T> *root() {
         return dummy_root->left_son;
@@ -110,13 +151,13 @@ public:
 
     static AVLTree<K, T> *merge_two_trees(AVLTree<K, T> *tree1, AVLTree<K, T> *tree2);
 
-    K *get_prev_inorder_cyclic(const K &) const;
+    K *get_prev_inorder(const K &) const;
 
-    K *get_next_inorder_cyclic(const K &) const;
+    K *get_next_inorder(const K &) const;
 };
 
 template<class K, class T>
-Node<K, T> *copy_tree(Node<K, T> *root, Node<K, T> *new_parent) {
+Node<K, T> *AVLTree<K, T>::copy_tree(Node<K, T> *root, Node<K, T> *new_parent) {
     if (root == NULL) {
         return NULL;
     }
@@ -129,7 +170,7 @@ Node<K, T> *copy_tree(Node<K, T> *root, Node<K, T> *new_parent) {
 }
 
 template<class K, class T>
-void destroy_tree(Node<K, T> *root) {
+void AVLTree<K, T>::destroy_tree(Node<K, T> *root) {
     if (root == NULL) {
         return;
     }
@@ -162,7 +203,7 @@ AVLTree<K, T>::~AVLTree<K, T>() {
 }
 
 template<class K, class T>
-Node<K, T> *LL(Node<K, T> *v) {
+Node<K, T> *AVLTree<K, T>::LL(Node<K, T> *v) {
     Node<K, T> *v_l = v->left_son;
     v->left_son = v_l->right_son;
     v_l->right_son = v;
@@ -183,7 +224,7 @@ Node<K, T> *LL(Node<K, T> *v) {
 }
 
 template<class K, class T>
-Node<K, T> *RR(Node<K, T> *v) {
+Node<K, T> *AVLTree<K, T>::RR(Node<K, T> *v) {
     Node<K, T> *v_r = v->right_son;
     v->right_son = v_r->left_son;
     v_r->left_son = v;
@@ -204,19 +245,19 @@ Node<K, T> *RR(Node<K, T> *v) {
 }
 
 template<class K, class T>
-Node<K, T> *LR(Node<K, T> *c) {
+Node<K, T> *AVLTree<K, T>::LR(Node<K, T> *c) {
     RR(c->left_son);
     return LL(c);
 }
 
 template<class K, class T>
-Node<K, T> *RL(Node<K, T> *c) {
+Node<K, T> *AVLTree<K, T>::RL(Node<K, T> *c) {
     LL(c->right_son);
     return RR(c);
 }
 
 template<class K, class T>
-Node<K, T> *find_aux(Node<K, T> *root, const K &key) {
+Node<K, T> *AVLTree<K, T>::find_aux(Node<K, T> *root, const K &key) {
     if (root == NULL) {
         return NULL;
     }
@@ -231,7 +272,7 @@ Node<K, T> *find_aux(Node<K, T> *root, const K &key) {
 }
 
 template<class K, class T>
-Node<K, T> *find_last_node_in_search_path(Node<K, T> *root, const K &key) {
+Node<K, T> *AVLTree<K, T>::find_last_node_in_search_path(Node<K, T> *root, const K &key) {
     //will return a pointer to the leaf which we need to attach next element to
     if (root == NULL) {
         return NULL;
@@ -333,7 +374,7 @@ AVLTreeResult AVLTree<K, T>::insert(const K &key, const T &data) {
 }
 
 template<class K, class T>
-Node<K, T> *remove_leaf(Node<K, T> *to_remove) {
+Node<K, T> *AVLTree<K, T>::remove_leaf(Node<K, T> *to_remove) {
     Node<K, T> *parent = to_remove->parent;
 
     if (parent->left_son == to_remove) {
@@ -347,7 +388,7 @@ Node<K, T> *remove_leaf(Node<K, T> *to_remove) {
 }
 
 template<class K, class T>
-Node<K, T> *remove_with_one_child(Node<K, T> *to_remove) {
+Node<K, T> *AVLTree<K, T>::remove_with_one_child(Node<K, T> *to_remove) {
     Node<K, T> *parent = to_remove->parent;
     Node<K, T> *child = to_remove->left_son != NULL ? to_remove->left_son : to_remove->right_son;
 
@@ -363,7 +404,7 @@ Node<K, T> *remove_with_one_child(Node<K, T> *to_remove) {
 }
 
 template<class K, class T>
-Node<K, T> *remove_with_two_children(Node<K, T> *to_remove) {
+Node<K, T> *AVLTree<K, T>::remove_with_two_children(Node<K, T> *to_remove) {
     Node<K, T> *next_inorder = to_remove->right_son; //no need to check for null since node for sure has two sons
     while (next_inorder->left_son != NULL) {
         next_inorder = next_inorder->left_son;
@@ -407,7 +448,7 @@ AVLTreeResult AVLTree<K, T>::remove(const K &key) {
 }
 
 template<class K, class T>
-void print_inorder_with_bf_aux(Node<K, T> *root) {
+void AVLTree<K, T>::print_inorder_with_bf_aux(Node<K, T> *root) {
     if (root == NULL) {
         return;
     }
@@ -424,7 +465,7 @@ void AVLTree<K, T>::print_inorder_with_bf() {
 }
 
 template<class K, class T>
-Node<K, T> *complete_tree(int height, Node<K, T> *parent) {
+Node<K, T> *AVLTree<K, T>::complete_tree(int height, Node<K, T> *parent) {
     if (height < 0) {
         return NULL;
     }
@@ -439,11 +480,13 @@ Node<K, T> *complete_tree(int height, Node<K, T> *parent) {
     return new_node;
 }
 
-bool is_power_of_two(int n) {
+template<class K, class T>
+bool AVLTree<K, T>::is_power_of_two(int n) {
     return n > 0 && (n & (n - 1)) == 0;
 }
 
-int find_minimal_complete_tree_height(int size) {
+template<class K, class T>
+int AVLTree<K, T>::find_minimal_complete_tree_height(int size) {
     do {
         size++;
     } while (!is_power_of_two(size));
@@ -452,7 +495,7 @@ int find_minimal_complete_tree_height(int size) {
 }
 
 template<class K, class T>
-void make_almost_complete_tree(Node<K, T> *root, int *current_size_ptr, int final_size) {
+void AVLTree<K, T>::make_almost_complete_tree(Node<K, T> *root, int *current_size_ptr, int final_size) {
     //root is of complete tree, and we are erasing elements from right to left
     if (root == NULL || *current_size_ptr == final_size) {
         return;
@@ -474,7 +517,7 @@ void make_almost_complete_tree(Node<K, T> *root, int *current_size_ptr, int fina
 }
 
 template<class K, class T>
-void populate_empty_tree(Node<K, T> *root, K key_array[], T data_array[], int *iptr) {
+void AVLTree<K, T>::populate_empty_tree(Node<K, T> *root, K key_array[], T data_array[], int *iptr) {
     if (root == NULL) {
         return;
     }
@@ -504,7 +547,7 @@ AVLTree<K, T>::AVLTree(K sorted_key_array[], T sorted_data_array[], int size) : 
 }
 
 template<class K, class T>
-void inorder_tree_to_array(Node<K, T> *root, K key_array[], T data_array[], int *iptr) {
+void AVLTree<K, T>::inorder_tree_to_array(Node<K, T> *root, K key_array[], T data_array[], int *iptr) {
     if (root == NULL) {
         return;
     }
@@ -530,8 +573,9 @@ void AVLTree<K, T>::to_sorted_keys_and_data(K key_array[], T data_array[]) const
 
 template<class K, class T>
 void
-merge_key_arrays_and_data_arrays(K key_array1[], K key_array2[], T data_array1[], T data_array2[], int size1, int size2,
-                                 K merged_key_array[], T merged_data_array[]) {
+AVLTree<K, T>::merge_key_arrays_and_data_arrays(K key_array1[], K key_array2[], T data_array1[], T data_array2[],
+                                                int size1, int size2,
+                                                K merged_key_array[], T merged_data_array[]) {
     int i1 = 0;
     int i2 = 0;
     int i3 = 0;
@@ -564,23 +608,78 @@ merge_key_arrays_and_data_arrays(K key_array1[], K key_array2[], T data_array1[]
 
 template<class K, class T>
 AVLTree<K, T> *AVLTree<K, T>::merge_two_trees(AVLTree<K, T> *tree1, AVLTree<K, T> *tree2) {
+    //put trees 1 and 2 into arrays
+    K *key_array1 = new K[tree1->size];
+    T *data_array1 = new T[tree1->size];
 
+    K *key_array2 = new K[tree2->size];
+    T *data_array2 = new T[tree2->size];
+
+    tree1->to_sorted_keys_and_data(key_array1, data_array1);
+    tree2->to_sorted_keys_and_data(key_array2, data_array2);
+
+    //merge the arrays
+
+    K *merged_key_array = new K[tree1->size + tree2->size];
+    T *merged_data_array = new T[tree1->size + tree2->size];
+
+    merge_key_arrays_and_data_arrays(key_array1, key_array2, data_array1, data_array2, tree1->size, tree2->size,
+                                     merged_key_array, merged_data_array);
+
+    //call c'tor that takes an array and build a tree
+    AVLTree<K, T> *merged_tree = new AVLTree<K, T>(merged_key_array, merged_data_array, tree1->size + tree2->size);
+
+    //return that tree
+    delete[] key_array1;
+    delete[] data_array1;
+    delete[] key_array2;
+    delete[] data_array2;
+    delete[] merged_key_array;
+    delete[] merged_data_array;
+
+    return merged_tree;
 }
 
 template<class K, class T>
-K *AVLTree<K, T>::get_prev_inorder_cyclic(const K &key) const {
+K *AVLTree<K, T>::get_prev_inorder(const K &key) const {
+    if (this->size < 2) {
+        return NULL;
+    }
+    Node<K, T> *found_node = find_aux(this->root(), key);
+    if (found_node == NULL) {
+        return NULL;
+    }
 
+    //if found_node has a left son
+    if (found_node->left_son != NULL) {
+        found_node = found_node->left_son;
+        while (found_node->right_son != NULL) {
+            found_node = found_node->right_son;
+        }
+        return &found_node->key;
+    } else {//found_node has no left son. So the only place we might find someone smaller is above found node.
+        //so we'll keep going upward until we turn left for the first time
 
+        while (found_node != this->root()) {
+            if (found_node == found_node->parent->right_son) {
+                return &found_node->parent->key;
+            }
+            found_node = found_node->parent;
+        }
+    }
+
+    //if we are here we didnt find anyone smaller above us or below us, therefore we are the smallest
+    return NULL;
 }
 
 
 template<class K, class T>
-K *AVLTree<K, T>::get_next_inorder_cyclic(const K &key) const {
+K *AVLTree<K, T>::get_next_inorder(const K &key) const {
     //if k has right son then we go right once then left all the way
     //if k has no right son but has parent that is bigger than k (meaning k is a left son of parent)
     // then next in order is parent
     //if k has no right son AND  k has no parent that is bigger than k (meaning k is right son of parent or k is the root)
-    // then next in order is the smallest in the tree.
+    // then next in order is NULL.
     if (this->size < 2) {
         return NULL;
     }
@@ -603,14 +702,11 @@ K *AVLTree<K, T>::get_next_inorder_cyclic(const K &key) const {
             }
             found_node = found_node->parent;
         }
-        //if we are here we didn't find an ancestor that is greater, and we have no descendants that are greater
-        //therefore we are the greatest so we need to find the smallest
-        found_node = this->root();
-        while (found_node->left_son != NULL) {
-            found_node = found_node->left_son;
-        }
-        return &found_node->key;
     }
+    //if we are here we didn't find an ancestor that is greater, and we have no descendants that are greater
+    //therefore we are the greatest so there is no next
+
+    return NULL;
 }
 
 #endif //WET1MIVNE_AVLTREE_H
