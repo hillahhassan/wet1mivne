@@ -25,7 +25,7 @@ public:
     explicit Node(const K &key, const T &data) : height(0), key(key), data(data), parent(NULL), left_son(NULL),
                                                  right_son(NULL) {}
 
-    Node() : height(0), key(key), parent(NULL), left_son(NULL),
+    Node() : height(0), key(NULL), parent(NULL), left_son(NULL),
              right_son(NULL) {}
 
     Node(const Node<K, T> &to_copy) = default;
