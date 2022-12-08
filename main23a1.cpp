@@ -23,7 +23,6 @@ void query_get_all_players(string cmd, world_cup_t *obj, int teamID);
 int main()
 {
     cin >> std::boolalpha;
-	
     int d1, d2, d3, d4, d5;
     bool b1;
 

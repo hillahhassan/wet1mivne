@@ -16,17 +16,24 @@
 #define WORLDCUP23A1_H_
 
 #include "wet1util.h"
-
+#include "AVLTree.h"
+#include "Player.h"
+#include "Team.h"
+#include <memory>
 class world_cup_t {
-    typedef std::shared_ptr<Player> Player_ptr;
-    typedef std::shared_ptr<Team> Team_ptr;
 private:
-    AVLTree<int, Player_ptr> PlayersTree;
-    AVLTree<int, Team_ptr> TeamsTree;
-    int playersCount;
-    int topScorerID;
-    int topScorerGoals;
-    int topScorerCards;
+    //Trees:
+    AVLTree<int, std::shared_ptr<Player>> PlayersTree;
+    AVLTree<std::shared_ptr<Player>, int> RankingTree;
+    AVLTree<int, std::shared_ptr<Team>> TeamsTree;
+    AVLTree<int, std::shared_ptr<Team>> KosherTree;
+
+    //Global Variables:
+    int g_topScorerID;
+    int amount_of_kosher;
+    int g_topScorerGoals;
+    int g_topScorerCards;
+    int g_playersCount;
 	//
 	// Here you may add anything you want
 	//
