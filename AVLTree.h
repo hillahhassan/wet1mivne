@@ -6,7 +6,8 @@
 #define WET1MIVNE_AVLTREE_H
 
 #include <cmath>
-
+#include <stdio.h>
+#include <iostream>
 
 typedef enum {
     AVL_TREE_MEMORY_ALLOCATION_ERROR, AVL_TREE_ALREADY_EXISTS, AVL_TREE_DOES_NOT_EXIST, AVL_TREE_SUCCESS
