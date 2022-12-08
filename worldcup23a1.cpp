@@ -269,8 +269,12 @@ StatusType world_cup_t::remove_player(int playerId)
     //PlayersTree.find(PrevPlayerId,PrevPlayer);
     //RankingTree.get_next_inorder(PrevPlayer)
     //RankingTree.get_prev_inorder(NextPlayer)
-    PrevPlayer->close_NextPlayer = NextPlayer;
-    NextPlayer->close_PrevPlayer = PrevPlayer;
+    if (PrevPlayer) {
+        PrevPlayer->close_NextPlayer = NextPlayer;
+    }
+    if (NextPlayer) {
+        NextPlayer->close_PrevPlayer = PrevPlayer;
+    }
 
     g_playersCount--;
 	return StatusType::SUCCESS;
