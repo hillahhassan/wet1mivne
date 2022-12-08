@@ -25,8 +25,8 @@ struct Team
     int t_topScorerCards;
     bool isKosher;
 
-    AVLTree<int, std::shared_ptr<Player> > teamPlayers_byID;
-    AVLTree<std::shared_ptr<Player> ,int> teamPlayers_byRank;
+    AVLTree<int, std::shared_ptr<Player>> teamPlayers_byID;
+    AVLTree<Player ,int> teamPlayers_byRank;
 
     Team(int teamId, int points) : teamId(teamId),
                                    points(points),

@@ -6,8 +6,8 @@
 #define WET1MIVNE_AVLTREE_H
 
 #include <cmath>
-#include <stdio.h>
 #include <iostream>
+
 
 typedef enum {
     AVL_TREE_MEMORY_ALLOCATION_ERROR, AVL_TREE_ALREADY_EXISTS, AVL_TREE_DOES_NOT_EXIST, AVL_TREE_SUCCESS
@@ -26,7 +26,7 @@ public:
     explicit Node(const K &key, const T &data) : height(0), key(key), data(data), parent(NULL), left_son(NULL),
                                                  right_son(NULL) {}
 
-    Node() : height(0), key(NULL), parent(NULL), left_son(NULL),
+    Node() : height(0), key(), parent(NULL), left_son(NULL),
              right_son(NULL) {}
 
     Node(const Node<K, T> &to_copy) = default;

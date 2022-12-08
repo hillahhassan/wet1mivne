@@ -20,8 +20,8 @@ struct Player
     int teamGamesPlayed_preAdd;
     bool goalKeeper;
     std::shared_ptr<Team> teamP;
-    std::shared_ptr<Player>* close_PrevPlayer;
-    std::shared_ptr<Player>* close_NextPlayer;
+    std::shared_ptr<Player> close_PrevPlayer;
+    std::shared_ptr<Player> close_NextPlayer;
 
     Player(int playerId, int teamId, int gamesPlayed, int goals, int cards, bool goalKeeper, std::shared_ptr<Team> team)
         : playerId(playerId), teamId(teamId),gamesPlayed(gamesPlayed), goals(goals), cards(cards),
@@ -30,7 +30,12 @@ struct Player
         teamGamesPlayed_preAdd = teamP->gamesPlayed;
     }
 
-    bool operator<(const Player &temp_player) const
+    Player()
+    {
+
+    }
+
+    bool operator<(const Player temp_player) const
     {
         if(goals < temp_player.goals)
         {
@@ -45,6 +50,45 @@ struct Player
             else if(cards == temp_player.cards)
             {
                 if(playerId < temp_player.playerId)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    bool operator>(const Player temp_player) const
+    {
+        if(goals > temp_player.goals)
+        {
+            return true;
+        }
+        else if (goals == temp_player.goals)
+        {
+            if(cards < temp_player.cards)
+            {
+                return true;
+            }
+            else if(cards == temp_player.cards)
+            {
+                if(playerId > temp_player.playerId)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    bool operator==(const Player temp_player) const
+    {
+
+        if (goals == temp_player.goals)
+        {
+            if(cards == temp_player.cards)
+            {
+                if(playerId == temp_player.playerId)
                 {
                     return true;
                 }

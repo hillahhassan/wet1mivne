@@ -24,7 +24,7 @@ class world_cup_t {
 private:
     //Trees:
     AVLTree<int, std::shared_ptr<Player>> PlayersTree;
-    AVLTree<std::shared_ptr<Player>, int> RankingTree;
+    AVLTree<Player, int> RankingTree;
     AVLTree<int, std::shared_ptr<Team>> TeamsTree;
     AVLTree<int, std::shared_ptr<Team>> KosherTree;
 

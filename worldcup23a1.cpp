@@ -117,13 +117,13 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
         }
         playerTeam_inserted = true;
 
-        if(RankingTree.insert(new_player_ptr,playerId) != AVLTreeResult::AVL_TREE_SUCCESS)
+        if(RankingTree.insert(*new_player_ptr,playerId) != AVLTreeResult::AVL_TREE_SUCCESS)
         {
             return StatusType::FAILURE;
         }
         ranking_inserted = true;
 
-        if(team_of_player->teamPlayers_byRank.insert(new_player_ptr,playerId) != AVLTreeResult::AVL_TREE_SUCCESS)
+        if(team_of_player->teamPlayers_byRank.insert(*new_player_ptr,playerId) != AVLTreeResult::AVL_TREE_SUCCESS)
         {
             return StatusType::FAILURE;
         }
@@ -142,11 +142,11 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
         }
         if(ranking_inserted)
         {
-            RankingTree.remove(new_player_ptr);
+            RankingTree.remove(*new_player_ptr);
         }
         if(teamRanking_inserted)
         {
-            team_of_player->teamPlayers_byRank.remove(new_player_ptr);
+            team_of_player->teamPlayers_byRank.remove(*new_player_ptr);
         }
         if(new_player_ptr != nullptr) {
         }
@@ -177,25 +177,35 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 
     if(goals > g_topScorerGoals ||
        (goals == g_topScorerGoals && (cards < g_topScorerCards ||
-                                                      (cards == g_topScorerCards && playerId > g_topScorerID))))
+                                                  (cards == g_topScorerCards && playerId > g_topScorerID))))
     {
         g_topScorerID = playerId;
         g_topScorerGoals = goals;
         g_topScorerCards = cards;
     }
 
-    new_player_ptr->close_NextPlayer = RankingTree.get_next_inorder(new_player_ptr) ;
-    new_player_ptr->close_PrevPlayer = RankingTree.get_prev_inorder(new_player_ptr);
+    Player* close_next = RankingTree.get_next_inorder(*new_player_ptr);
+    Player* close_prev = RankingTree.get_prev_inorder(*new_player_ptr);
+    if(close_next != NULL)
+    {
+        PlayersTree.find(close_next->playerId, &new_player_ptr->close_NextPlayer);
+    }
+
+    if(close_prev != NULL)
+    {
+        PlayersTree.find(close_prev->playerId, &new_player_ptr->close_PrevPlayer);
+    }
+
 
     //Updates for neighbor ranked players
     if(new_player_ptr->close_PrevPlayer != nullptr)
     {
-        new_player_ptr->close_PrevPlayer->get()->close_NextPlayer = &new_player_ptr;
+        new_player_ptr->close_PrevPlayer->close_NextPlayer = new_player_ptr;
     }
 
     if(new_player_ptr->close_NextPlayer != nullptr)
     {
-        new_player_ptr->close_NextPlayer->get()->close_PrevPlayer = &new_player_ptr;
+        new_player_ptr->close_NextPlayer->close_PrevPlayer = new_player_ptr;
     }
 
 
@@ -218,8 +228,8 @@ StatusType world_cup_t::remove_player(int playerId)
         return StatusType::FAILURE;
     }
 
-    std::shared_ptr<Player> PrevPlayer = *player_to_remove->close_PrevPlayer;
-    std::shared_ptr<Player> NextPlayer = *player_to_remove->close_NextPlayer;
+    std::shared_ptr<Player> PrevPlayer = player_to_remove->close_PrevPlayer;
+    std::shared_ptr<Player> NextPlayer = player_to_remove->close_NextPlayer;
     std::shared_ptr<Team> team_of_player = player_to_remove->teamP;
     team_of_player->totalGoals -= player_to_remove->goals;
     team_of_player->playersCount--;
@@ -237,7 +247,7 @@ StatusType world_cup_t::remove_player(int playerId)
     }
 
     team_of_player->teamPlayers_byID.remove(playerId);
-    team_of_player->teamPlayers_byRank.remove(player_to_remove);
+    team_of_player->teamPlayers_byRank.remove(*player_to_remove);
     if(playerId == team_of_player->t_topScorerId)
     {
         if(PrevPlayer != nullptr) {
@@ -253,14 +263,14 @@ StatusType world_cup_t::remove_player(int playerId)
         }
     }
     PlayersTree.remove(playerId);
-    RankingTree.remove(player_to_remove);
+    RankingTree.remove(*player_to_remove);
 
     //PlayersTree.find(NextPlayerId,NextPlayer);
     //PlayersTree.find(PrevPlayerId,PrevPlayer);
     //RankingTree.get_next_inorder(PrevPlayer)
     //RankingTree.get_prev_inorder(NextPlayer)
-    PrevPlayer->close_NextPlayer = &NextPlayer;
-    NextPlayer->close_PrevPlayer = &PrevPlayer;
+    PrevPlayer->close_NextPlayer = NextPlayer;
+    NextPlayer->close_PrevPlayer = PrevPlayer;
 
     g_playersCount--;
 	return StatusType::SUCCESS;
@@ -288,15 +298,15 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
         std::shared_ptr<Player> player_to_insert(new Player(*player_to_update));
 
         // Remove the old player from the ranking tree
-        RankingTree.remove(player_to_update);
+        RankingTree.remove(*player_to_update);
 
         // Insert the new player with updated stats into the ranking tree
-        RankingTree.insert(player_to_insert,playerId);
+        RankingTree.insert(*player_to_insert,playerId);
 
         // Update team statistics
         std::shared_ptr<Team> team_of_player = player_to_update->teamP;
         team_of_player->totalGoals += scoredGoals;
-        team_of_player->playersCount += gamesPlayed;
+        team_of_player->gamesPlayed += gamesPlayed;
         team_of_player->totalCards += cardsReceived;
 
     }
@@ -305,17 +315,19 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
         return StatusType::ALLOCATION_ERROR;
     }
 
-    std::shared_ptr<Player>  *old_prev_player = player_to_update->close_NextPlayer->get()->close_PrevPlayer;
-    player_to_update->close_NextPlayer->get()->close_PrevPlayer = player_to_update->close_PrevPlayer->get()->close_NextPlayer;
-    player_to_update->close_PrevPlayer->get()->close_NextPlayer = old_prev_player;
-    player_to_update->close_NextPlayer = (RankingTree.get_next_inorder(player_to_update)) ;
-    player_to_update->close_PrevPlayer = (RankingTree.get_prev_inorder(player_to_update));
+    std::shared_ptr<Player>  old_prev_player = player_to_update->close_NextPlayer->close_PrevPlayer;
+    player_to_update->close_NextPlayer->close_PrevPlayer = player_to_update->close_PrevPlayer->close_NextPlayer;
+    player_to_update->close_PrevPlayer->close_NextPlayer = old_prev_player;
+    Player* next_Player = RankingTree.get_next_inorder(*player_to_update);
+    Player* prev_Player = RankingTree.get_prev_inorder(*player_to_update);
+    PlayersTree.find(next_Player->playerId,&player_to_update->close_NextPlayer);
+    PlayersTree.find(prev_Player->playerId,&player_to_update->close_PrevPlayer);
     if(player_to_update->close_PrevPlayer != NULL)
     {
-        player_to_update->close_PrevPlayer->get()->close_NextPlayer = &player_to_update;
+        player_to_update->close_PrevPlayer->close_NextPlayer = player_to_update;
     }
     if(player_to_update->close_NextPlayer != NULL) {
-        player_to_update->close_NextPlayer->get()->close_PrevPlayer = &player_to_update;
+        player_to_update->close_NextPlayer->close_PrevPlayer = player_to_update;
     }
 
 
@@ -449,7 +461,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
     else if(teamId1 == newTeamId)
     {
         int * array_key_team2 = new int[team2->playersCount];
-        std::shared_ptr<Player> * array_data_team2 = new std::shared_ptr<Player>[team2->playersCount];
+        std::shared_ptr<Player> *array_data_team2;
         team2->teamPlayers_byID.to_sorted_keys_and_data(array_key_team2,array_data_team2);
         for(int i=0;i<team2->playersCount;i++)
         {
@@ -550,7 +562,7 @@ StatusType world_cup_t::get_all_players(int teamId, int *const output)
         {
             return StatusType::FAILURE;
         }
-        std::shared_ptr<Player>* key_array = new std::shared_ptr<Player>[team_to_get->playersCount];
+        Player key_array[team_to_get->playersCount];
         team_to_get->teamPlayers_byRank.to_sorted_keys_and_data(key_array,output);
         int wow = 0;
     }
@@ -588,11 +600,11 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId)
 
     if(player->close_NextPlayer < player->close_PrevPlayer)
     {
-        return output_t<int>(player->close_PrevPlayer->get()->playerId);
+        return output_t<int>(player->close_PrevPlayer->playerId);
     }
     else
     {
-        return output_t<int>(player->close_NextPlayer->get()->playerId);
+        return output_t<int>(player->close_NextPlayer->playerId);
     }
 
 }
@@ -604,6 +616,7 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
     {
         return output_t<int>(StatusType::INVALID_INPUT);
     }
+
 
 	// TODO: Your code goes here
 	return 2;
