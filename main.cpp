@@ -80,5 +80,7 @@ int main() {
     //Node<int, class player>* copied_player_tree;
     //copied_player_tree = copy_tree<int, class player>(player_tree.root(), NULL);
 
+    delete merged_tree;
+
     return 0;
 }

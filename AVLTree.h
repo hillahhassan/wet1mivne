@@ -532,6 +532,8 @@ void AVLTree<K, T>::make_almost_complete_tree(Node<K, T> *root, int *current_siz
         } else {
             root->parent->left_son = NULL;
         }
+        root->parent->update_height();
+
         delete root;
         (*current_size_ptr)--;
     } else {
