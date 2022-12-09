@@ -220,6 +220,9 @@ Node<K, T> *AVLTree<K, T>::LL(Node<K, T> *v) {
 
     v_l->parent = v->parent;
     v->parent = v_l;
+    if (v->left_son) {
+        v->left_son->parent = v;
+    }
 
     if (v_l->parent->left_son == v) {
         v_l->parent->left_son = v_l;
@@ -242,6 +245,9 @@ Node<K, T> *AVLTree<K, T>::RR(Node<K, T> *v) {
 
     v_r->parent = v->parent;
     v->parent = v_r;
+    if (v->right_son) {
+        v->right_son->parent = v;
+    }
 
     if (v_r->parent->left_son == v) {
         v_r->parent->left_son = v_r;
