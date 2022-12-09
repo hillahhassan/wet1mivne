@@ -272,10 +272,22 @@ StatusType world_cup_t::remove_player(int playerId)
     if (PrevPlayer) {
         PrevPlayer->close_NextPlayer = NextPlayer;
     }
+
     if (NextPlayer) {
         NextPlayer->close_PrevPlayer = PrevPlayer;
     }
+
+    
+    if(!NextPlayer && PrevPlayer)
+    {
+        g_topScorerID = PrevPlayer->playerId;
+        g_topScorerGoals = PrevPlayer->goals;
+        g_topScorerCards = PrevPlayer->cards;
+    }
+    
+
     team_of_player->playersCount--;
+
     g_playersCount--;
 	return StatusType::SUCCESS;
 }
@@ -318,7 +330,6 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
 
 
         team_of_player->totalGoals += scoredGoals;
-        team_of_player->gamesPlayed += gamesPlayed;
         team_of_player->totalCards += cardsReceived;
 
     }
@@ -357,8 +368,15 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
     {
         player_to_update->close_PrevPlayer->close_NextPlayer = player_to_update;
     }
+
     if(player_to_update->close_NextPlayer != nullptr) {
         player_to_update->close_NextPlayer->close_PrevPlayer = player_to_update;
+    }
+    else
+    {
+        g_topScorerID = player_to_update->playerId;
+        g_topScorerGoals = player_to_update->goals;
+        g_topScorerCards = player_to_update->cards;
     }
 
 
@@ -608,7 +626,9 @@ StatusType world_cup_t::get_all_players(int teamId, int *const output)
             return StatusType::FAILURE;
         }
         Player *key_array = new Player[g_playersCount];
+
         RankingTree.to_sorted_keys_and_data(nullptr,output);
+
         delete[] key_array;
     }
 	return StatusType::SUCCESS;
