@@ -30,8 +30,26 @@ struct Player {
     }
 
     Player() = default;
+    ~Player() = default;
+    Player &operator=(const Player &player)
+    {
+        if(this == &player)
+        {
+            return *this;
+        }
 
-    Player &operator=(const Player &player) = default;
+        this->playerId = player.playerId;
+        this->teamId = player.teamId;
+        this->gamesPlayed = player.gamesPlayed;
+        this->goals = player.goals;
+        this->cards = player.cards;
+        this->teamGamesPlayed_preAdd = player.teamGamesPlayed_preAdd;
+        this->goalKeeper = player.goalKeeper;
+        this->teamP = player.teamP;
+        this->close_PrevPlayer = player.close_PrevPlayer;
+        this->close_NextPlayer = player.close_NextPlayer;
+        return *this;
+    };
 
     bool operator<(const Player temp_player) const {
         if (goals < temp_player.goals) {
