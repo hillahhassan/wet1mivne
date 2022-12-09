@@ -233,7 +233,6 @@ StatusType world_cup_t::remove_player(int playerId)
     std::shared_ptr<Player> NextPlayer = player_to_remove->close_NextPlayer;
     std::shared_ptr<Team> team_of_player = player_to_remove->teamP;
     team_of_player->totalGoals -= player_to_remove->goals;
-    team_of_player->playersCount--;
     team_of_player->totalCards -= player_to_remove->cards;
     team_of_player->gksCount -= player_to_remove->goalKeeper;
 
@@ -276,7 +275,7 @@ StatusType world_cup_t::remove_player(int playerId)
     if (NextPlayer) {
         NextPlayer->close_PrevPlayer = PrevPlayer;
     }
-
+    team_of_player->playersCount--;
     g_playersCount--;
 	return StatusType::SUCCESS;
 }
@@ -310,6 +309,14 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
 
         // Update team statistics
         std::shared_ptr<Team> team_of_player = player_to_update->teamP;
+
+        // Remove the old player from the ranking tree
+        team_of_player->teamPlayers_byRank.remove(*player_to_update);
+
+        // Insert the new player with updated stats into the ranking tree
+        team_of_player->teamPlayers_byRank.insert(*player_to_insert,playerId);
+
+
         team_of_player->totalGoals += scoredGoals;
         team_of_player->gamesPlayed += gamesPlayed;
         team_of_player->totalCards += cardsReceived;
@@ -652,7 +659,7 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
     int iptr = 0;
     for(int i=0;i<keys_length;i++)
     {
-        if(key_array[i] >= minTeamId)
+        if(key_array[i] >= minTeamId && key_array[i] <= maxTeamId)
         {
             eligible_Keys[iptr] = key_array[i];
             eligible_points[iptr++] = data_array[i]->points;
