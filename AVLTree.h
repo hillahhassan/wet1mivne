@@ -117,6 +117,9 @@ private:
 
     static void inorder_tree_to_array(Node<K, T> *root, K key_array[], T data_array[], int *iptr);
 
+
+    static void inorder_tree_data_to_array(Node<K, T> *root, T data_array[], int *iptr);
+
     static void
     merge_key_arrays_and_data_arrays(K key_array1[], K key_array2[], T data_array1[], T data_array2[], int size1,
                                      int size2,
@@ -142,6 +145,8 @@ public:
     AVLTreeResult remove(const K &key);
 
     AVLTreeResult find(const K &key, T *found_data);
+
+    AVLTreeResult contains(const K &key);
 
     void print_inorder_with_bf();
 
@@ -322,6 +327,17 @@ AVLTreeResult AVLTree<K, T>::find(const K &key, T *found_data) {
     }
 
     *found_data = found_node->data;
+    return AVL_TREE_SUCCESS;
+}
+
+
+template<class K,class T>
+AVLTreeResult AVLTree<K,T>::contains(const K &key) {
+    Node<K, T> *found_node = find_aux(this->root(), key);
+    if (found_node == NULL) {
+        return AVL_TREE_DOES_NOT_EXIST;
+    }
+
     return AVL_TREE_SUCCESS;
 }
 
@@ -587,19 +603,41 @@ void AVLTree<K, T>::inorder_tree_to_array(Node<K, T> *root, K key_array[], T dat
     }
 
     inorder_tree_to_array(root->left_son, key_array, data_array, iptr);
-
-    key_array[*iptr] = root->key;
+    if(key_array != nullptr) {
+        key_array[*iptr] = root->key;
+    }
     data_array[*iptr] = root->data;
     (*iptr)++;
 
     inorder_tree_to_array(root->right_son, key_array, data_array, iptr);
 }
 
+/*helper function that traverses a tree inorder and puts keys and data into array (both inorder according to key)*/
+template<class K, class T>
+void AVLTree<K, T>::inorder_tree_data_to_array(Node<K, T> *root, T data_array[], int *iptr) {
+    if (root == NULL) {
+        return;
+    }
+
+    inorder_tree_data_to_array(root->left_son, data_array, iptr);
+    data_array[*iptr] = root->data;
+    (*iptr)++;
+
+    inorder_tree_data_to_array(root->right_son, data_array, iptr);
+}
+
 //copies tree data and keys into respective arrays
 template<class K, class T>
 void AVLTree<K, T>::to_sorted_keys_and_data(K key_array[], T data_array[]) {
     int i = 0;
-    inorder_tree_to_array(this->root(), key_array, data_array, &i);
+    if(key_array != nullptr)
+    {
+        inorder_tree_to_array(this->root(), key_array, data_array, &i);
+    }
+    else
+    {
+        inorder_tree_data_to_array(this->root(), data_array, &i);
+    }
 }
 
 /*helper function*/
@@ -749,4 +787,6 @@ K *AVLTree<K, T>::get_next_inorder(const K &key) {
     return NULL;
 }
 
+
 #endif //WET1MIVNE_AVLTREE_H
+
