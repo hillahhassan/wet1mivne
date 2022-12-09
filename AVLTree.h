@@ -143,6 +143,8 @@ public:
 
     AVLTreeResult find(const K &key, T *found_data);
 
+    AVLTreeResult contains(const K &key);
+
     void print_inorder_with_bf();
 
     int get_size() const {
@@ -220,6 +222,9 @@ Node<K, T> *AVLTree<K, T>::LL(Node<K, T> *v) {
 
     v_l->parent = v->parent;
     v->parent = v_l;
+    if (v->left_son) {
+        v->left_son->parent = v;
+    }
 
     if (v_l->parent->left_son == v) {
         v_l->parent->left_son = v_l;
@@ -242,6 +247,9 @@ Node<K, T> *AVLTree<K, T>::RR(Node<K, T> *v) {
 
     v_r->parent = v->parent;
     v->parent = v_r;
+    if (v->right_son) {
+        v->right_son->parent = v;
+    }
 
     if (v_r->parent->left_son == v) {
         v_r->parent->left_son = v_r;
@@ -316,6 +324,16 @@ AVLTreeResult AVLTree<K, T>::find(const K &key, T *found_data) {
     }
 
     *found_data = found_node->data;
+    return AVL_TREE_SUCCESS;
+}
+
+template<class K,class T>
+AVLTreeResult AVLTree<K,T>::contains(const K &key) {
+    Node<K, T> *found_node = find_aux(this->root(), key);
+    if (found_node == NULL) {
+        return AVL_TREE_DOES_NOT_EXIST;
+    }
+
     return AVL_TREE_SUCCESS;
 }
 

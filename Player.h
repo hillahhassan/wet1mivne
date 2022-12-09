@@ -31,6 +31,8 @@ struct Player {
 
     Player() = default;
 
+    Player &operator=(const Player &player) = default;
+
     bool operator<(const Player temp_player) const {
         if (goals < temp_player.goals) {
             return true;
