@@ -133,6 +133,31 @@ public:
 
     AVLTree(const AVLTree<K, T> &);
 
+
+    int max(int a, int b)
+    {
+        if(a > b)
+            return a;
+        return b;
+    }
+
+    int getHight()
+    {
+        return dummy_root->left_son->height;
+    }
+
+    int getHightReal()
+    {
+        return getHightRec(dummy_root->left_son);
+    }
+
+    int getHightRec(Node<K, T>* node)
+    {
+        if(node == nullptr)
+            return -1;
+        return 1 + max(getHightRec(node->left_son), getHightRec(node->right_son));
+    }
+
     ~AVLTree();
 
     AVLTree<K, T> &operator=(const AVLTree<K, T> &);
@@ -366,9 +391,10 @@ void AVLTree<K, T>::balance_nodes_in_search_path(Node<K, T> *last_in_path) {
         return;
     }
 
+    /*
     if (last_in_path->parent->height >= last_in_path->height + 1) {
         return;
-    }
+    }*/
 
     balance_nodes_in_search_path(last_in_path->parent);
 }
