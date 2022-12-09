@@ -33,10 +33,23 @@ struct Player {
     ~Player() = default;
     Player &operator=(const Player &player)
     {
+        Player temp(player);
         if(this == &player)
         {
             return *this;
         }
+/*
+        std::swap(playerId,temp.playerId);
+        std::swap(teamId,temp.teamId);
+        std::swap(gamesPlayed,temp.gamesPlayed);
+        std::swap(goals,temp.goals);
+        std::swap(cards,temp.cards);
+        std::swap(teamGamesPlayed_preAdd,temp.teamGamesPlayed_preAdd);
+        std::swap(goalKeeper,temp.goalKeeper);
+        std::swap(teamP,temp.teamP);
+        std::swap(close_PrevPlayer,temp.close_PrevPlayer);
+        std::swap(close_NextPlayer,temp.close_NextPlayer);
+*/
 
         this->playerId = player.playerId;
         this->teamId = player.teamId;

@@ -319,10 +319,24 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
     {
         return StatusType::ALLOCATION_ERROR;
     }
+    if(player_to_update->close_NextPlayer != nullptr)
+    {
+        std::shared_ptr<Player> old_prev_player(player_to_update->close_NextPlayer->close_PrevPlayer);
+        if(player_to_update->close_PrevPlayer != nullptr)
+        {
+            player_to_update->close_PrevPlayer->close_NextPlayer = old_prev_player;
+        }
 
-    std::shared_ptr<Player>  old_prev_player = player_to_update->close_NextPlayer->close_PrevPlayer;
-    player_to_update->close_NextPlayer->close_PrevPlayer = player_to_update->close_PrevPlayer->close_NextPlayer;
-    player_to_update->close_PrevPlayer->close_NextPlayer = old_prev_player;
+    }
+
+    if(player_to_update->close_NextPlayer != nullptr)
+    {
+        if(player_to_update->close_PrevPlayer != nullptr) {
+            player_to_update->close_NextPlayer->close_PrevPlayer = player_to_update->close_PrevPlayer->close_NextPlayer;
+        }
+    }
+
+
     Player* next_Player = RankingTree.get_next_inorder(*player_to_update);
     Player* prev_Player = RankingTree.get_prev_inorder(*player_to_update);
     if(next_Player != nullptr)
@@ -625,8 +639,6 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
     {
         return output_t<int>(StatusType::INVALID_INPUT);
     }
-
-
     int* key_array = new int[amount_of_kosher];
     std::shared_ptr<Team>* data_array = new std::shared_ptr<Team>[amount_of_kosher];
     KosherTree.to_sorted_keys_and_data(key_array,data_array);
