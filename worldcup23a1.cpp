@@ -12,7 +12,7 @@ world_cup_t::world_cup_t() :  TeamsTree(), RankingTree()
 world_cup_t::~world_cup_t() = default;
 /*{
 
-	// TODO: Your code goes here
+
 }*/
 
 
@@ -269,8 +269,12 @@ StatusType world_cup_t::remove_player(int playerId)
     //PlayersTree.find(PrevPlayerId,PrevPlayer);
     //RankingTree.get_next_inorder(PrevPlayer)
     //RankingTree.get_prev_inorder(NextPlayer)
-    PrevPlayer->close_NextPlayer = NextPlayer;
-    NextPlayer->close_PrevPlayer = PrevPlayer;
+    if (PrevPlayer) {
+        PrevPlayer->close_NextPlayer = NextPlayer;
+    }
+    if (NextPlayer) {
+        NextPlayer->close_PrevPlayer = PrevPlayer;
+    }
 
     g_playersCount--;
 	return StatusType::SUCCESS;
@@ -618,7 +622,73 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
     }
 
 
-	// TODO: Your code goes here
-	return 2;
+    int* key_array = new int[amount_of_kosher];
+    std::shared_ptr<Team>* data_array = new std::shared_ptr<Team>[amount_of_kosher];
+    KosherTree.to_sorted_keys_and_data(key_array,data_array);
+
+    int eligble_Keys[amount_of_kosher];
+    int eligble_points[amount_of_kosher];
+    int iptr = 0;
+    for(int i=0;i<amount_of_kosher;i++)
+    {
+        if(key_array[i] >= minTeamId)
+        {
+            eligble_Keys[iptr] = key_array[i];
+            eligble_points[iptr++] = data_array[i]->points;
+        }
+        if(key_array[i] > maxTeamId)
+        {
+            i = amount_of_kosher;
+        }
+    }
+    int eligible_Amount = iptr;
+    if(eligible_Amount < 1)
+    {
+        return output_t<int>(StatusType::FAILURE);
+    }
+    int winners_Amount = eligible_Amount;
+    //int* prev_keys = eligble_Keys;
+    //int* prev_points = eligble_points;
+    int prev_amount = winners_Amount;
+    int winners_keys[winners_Amount];
+    int winners_points[winners_Amount];
+    int jptr = 0;
+
+    while (prev_amount > 1)
+    {
+
+        jptr = 0;
+        for (int j = 0; j < prev_amount; j++) {
+            if (prev_amount <= j + 1)
+            {
+                winners_keys[jptr] = eligble_Keys[j];
+                winners_points[jptr++] = eligble_points[j];
+            }
+            else if(eligble_points[j] > eligble_points[j+1])
+            {
+                winners_keys[jptr] = eligble_Keys[j];
+                winners_points[jptr++] = eligble_points[j] + eligble_points[j+1] + 3;
+                j++;
+            }
+            else if(eligble_points[j] < eligble_points[j+1])
+            {
+                winners_keys[jptr] = eligble_Keys[j+1];
+                winners_points[jptr++] = eligble_points[j] + eligble_points[j+1] + 3;
+                j++;
+            }
+            else if(eligble_points[j] == eligble_points[j+1])
+            {
+                winners_keys[jptr] = eligble_Keys[j+1];
+                winners_points[jptr++] = eligble_points[j] + eligble_points[j+1] + 3;
+                j++;
+            }
+        }
+        *eligble_Keys = *winners_keys;
+        *eligble_points = *winners_points;
+        prev_amount = jptr;
+    }
+
+    return output_t<int>(eligble_Keys[0]);
+
 }
 

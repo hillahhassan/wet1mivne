@@ -10,9 +10,12 @@
 #include <memory>
 #include <stdio.h>
 #include "Player.h"
-typedef struct Player;
-struct Team
-{
+
+#pragma once
+struct Player; // forward declaration
+
+
+struct Team {
     int teamId;
     int points;
     int totalGoals;
@@ -26,7 +29,7 @@ struct Team
     bool isKosher;
 
     AVLTree<int, std::shared_ptr<Player>> teamPlayers_byID;
-    AVLTree<Player ,int> teamPlayers_byRank;
+    AVLTree<Player, int> teamPlayers_byRank;
 
     Team(int teamId, int points) : teamId(teamId),
                                    points(points),
@@ -38,11 +41,9 @@ struct Team
                                    t_topScorerId(0),
                                    t_topScorerGoals(0),
                                    t_topScorerCards(0),
-                                   isKosher(false),
-                                   teamPlayers_byID(),
-                                   teamPlayers_byRank()
-    {
+                                   isKosher(false) {
     }
 
 };
+
 #endif //WET1MIVNE_MASTER_TEAM_H

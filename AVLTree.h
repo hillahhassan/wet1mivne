@@ -26,7 +26,7 @@ public:
     explicit Node(const K &key, const T &data) : height(0), key(key), data(data), parent(NULL), left_son(NULL),
                                                  right_son(NULL) {}
 
-    Node() : height(0), key(), parent(NULL), left_son(NULL),
+    Node() : height(0), parent(NULL), left_son(NULL),
              right_son(NULL) {}
 
     Node(const Node<K, T> &to_copy) = default;
@@ -533,6 +533,8 @@ void AVLTree<K, T>::make_almost_complete_tree(Node<K, T> *root, int *current_siz
         } else {
             root->parent->left_son = NULL;
         }
+        root->parent->update_height();
+
         delete root;
         (*current_size_ptr)--;
     } else {
