@@ -496,10 +496,11 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         }
         team1->teamPlayers_byID.merge_two_trees(&team1->teamPlayers_byID,&team2->teamPlayers_byID);
         team1->teamPlayers_byRank.merge_two_trees(&team1->teamPlayers_byRank,&team2->teamPlayers_byRank);
+        delete[] array_key_team2;
+        delete[] array_data_team2;
     }
     else if(teamId2 == newTeamId)
     {
-
         int * array_key_team1 = new int[team1->playersCount];
         std::shared_ptr<Player> * array_data_team1 = new std::shared_ptr<Player>[team1->playersCount];
         team1->teamPlayers_byID.to_sorted_keys_and_data(array_key_team1,array_data_team1);
@@ -511,6 +512,8 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         }
         team2->teamPlayers_byID.merge_two_trees(&team1->teamPlayers_byID, &team2->teamPlayers_byID);
         team2->teamPlayers_byRank.merge_two_trees(&team1->teamPlayers_byRank, &team2->teamPlayers_byRank);
+        delete[] array_key_team1;
+        delete[] array_data_team1;
     }
 
 	return StatusType::SUCCESS;
@@ -588,7 +591,7 @@ StatusType world_cup_t::get_all_players(int teamId, int *const output)
             return StatusType::FAILURE;
         }
         Player *key_array = new Player[team_to_get->playersCount];
-        team_to_get->teamPlayers_byRank.to_sorted_keys_and_data(key_array,output);
+        team_to_get->teamPlayers_byRank.to_sorted_keys_and_data(nullptr,output);
         delete[] key_array;
     }
     if(teamId < 0)
@@ -597,8 +600,9 @@ StatusType world_cup_t::get_all_players(int teamId, int *const output)
         {
             return StatusType::FAILURE;
         }
-        Player *key_array = new Player[team_to_get->playersCount];
-        RankingTree.to_sorted_keys_and_data(key_array,output);
+        Player *key_array = new Player[g_playersCount];
+        RankingTree.to_sorted_keys_and_data(nullptr,output);
+        delete[] key_array;
     }
 	return StatusType::SUCCESS;
 }
@@ -661,6 +665,10 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
     int eligible_Amount = iptr;
     if(eligible_Amount < 1)
     {
+        delete[] key_array;
+        delete[] data_array;
+        delete[] eligible_Keys;
+        delete[] eligible_points;
         return output_t<int>(StatusType::FAILURE);
     }
     int winners_Amount = eligible_Amount;
