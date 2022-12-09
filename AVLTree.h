@@ -6,10 +6,11 @@
 #define WET1MIVNE_AVLTREE_H
 
 #include <cmath>
+#include <iostream>
 
 
 typedef enum {
-    AVL_TREE_MEMORY_ALLOCATION_ERROR, AVL_TREE_ALREADY_EXISTS, AVL_TREE_DOES_NOT_EXIST, AVL_TREE_SUCCESS
+    AVL_TREE_ALREADY_EXISTS, AVL_TREE_DOES_NOT_EXIST, AVL_TREE_SUCCESS
 } AVLTreeResult;
 
 template<class K, class T>
@@ -25,7 +26,7 @@ public:
     explicit Node(const K &key, const T &data) : height(0), key(key), data(data), parent(NULL), left_son(NULL),
                                                  right_son(NULL) {}
 
-    Node() : height(0), key(NULL), parent(NULL), left_son(NULL),
+    Node() : height(0), parent(NULL), left_son(NULL),
              right_son(NULL) {}
 
     Node(const Node<K, T> &to_copy) = default;
@@ -219,6 +220,9 @@ Node<K, T> *AVLTree<K, T>::LL(Node<K, T> *v) {
 
     v_l->parent = v->parent;
     v->parent = v_l;
+    if (v->left_son) {
+        v->left_son->parent = v;
+    }
 
     if (v_l->parent->left_son == v) {
         v_l->parent->left_son = v_l;
@@ -241,6 +245,9 @@ Node<K, T> *AVLTree<K, T>::RR(Node<K, T> *v) {
 
     v_r->parent = v->parent;
     v->parent = v_r;
+    if (v->right_son) {
+        v->right_son->parent = v;
+    }
 
     if (v_r->parent->left_son == v) {
         v_r->parent->left_son = v_r;
