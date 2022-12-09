@@ -10,7 +10,7 @@
 
 
 typedef enum {
-    AVL_TREE_MEMORY_ALLOCATION_ERROR, AVL_TREE_ALREADY_EXISTS, AVL_TREE_DOES_NOT_EXIST, AVL_TREE_SUCCESS
+    AVL_TREE_ALREADY_EXISTS, AVL_TREE_DOES_NOT_EXIST, AVL_TREE_SUCCESS
 } AVLTreeResult;
 
 template<class K, class T>
@@ -116,6 +116,7 @@ private:
     static void populate_empty_tree(Node<K, T> *root, K key_array[], T data_array[], int *iptr);
 
     static void inorder_tree_to_array(Node<K, T> *root, K key_array[], T data_array[], int *iptr);
+
 
     static void inorder_tree_data_to_array(Node<K, T> *root, T data_array[], int *iptr);
 
@@ -328,6 +329,7 @@ AVLTreeResult AVLTree<K, T>::find(const K &key, T *found_data) {
     *found_data = found_node->data;
     return AVL_TREE_SUCCESS;
 }
+
 
 template<class K,class T>
 AVLTreeResult AVLTree<K,T>::contains(const K &key) {
@@ -638,8 +640,6 @@ void AVLTree<K, T>::to_sorted_keys_and_data(K key_array[], T data_array[]) {
     }
 }
 
-
-
 /*helper function*/
 //takes two sorted data arrays and merges them into a single sorted data array
 //takes two sorted key arrays and merges them into a single sorted key array
@@ -787,4 +787,6 @@ K *AVLTree<K, T>::get_next_inorder(const K &key) {
     return NULL;
 }
 
+
 #endif //WET1MIVNE_AVLTREE_H
+
