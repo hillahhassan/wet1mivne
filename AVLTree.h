@@ -621,7 +621,7 @@ AVLTree<K, T>::merge_key_arrays_and_data_arrays(K key_array1[], K key_array2[], 
             i1++;
         } else {
             merged_key_array[i3] = key_array2[i2];
-            merged_data_array[i3] = data_array1[i2];
+            merged_data_array[i3] = data_array2[i2];
             i2++;
         }
         i3++;
@@ -633,8 +633,8 @@ AVLTree<K, T>::merge_key_arrays_and_data_arrays(K key_array1[], K key_array2[], 
         i3++;
     }
     while (i2 < size2) {
-        merged_key_array[i3] = key_array1[i2];
-        merged_data_array[i3] = data_array1[i2];
+        merged_key_array[i3] = key_array2[i2];
+        merged_data_array[i3] = data_array2[i2];
         i2++;
         i3++;
     }
