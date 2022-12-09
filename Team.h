@@ -41,9 +41,7 @@ struct Team {
                                    t_topScorerId(0),
                                    t_topScorerGoals(0),
                                    t_topScorerCards(0),
-                                   isKosher(false),
-                                   teamPlayers_byID(),
-                                   teamPlayers_byRank() {
+                                   isKosher(false) {
     }
 
 };

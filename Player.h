@@ -29,9 +29,7 @@ struct Player {
         teamGamesPlayed_preAdd = teamP->gamesPlayed;
     }
 
-    Player() {
-
-    }
+    Player() = default;
 
     bool operator<(const Player temp_player) const {
         if (goals < temp_player.goals) {
