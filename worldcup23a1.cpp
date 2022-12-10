@@ -506,11 +506,27 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
             array_data_team2[i]->teamP = newTeam;
             array_data_team2[i]->gamesPlayed += team2->gamesPlayed - array_data_team2[i]->teamGamesPlayed_preAdd;
         }
-
+        newTeam->totalGoals = team1->totalGoals + team2->totalGoals;
+        newTeam->totalCards = team1->totalCards + team2->totalCards;
+        newTeam->gksCount = team1->gksCount + team2->gksCount;
         newTeam->playersCount = team1->playersCount + team2->playersCount;
+        
         newTeam->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID ,team2->teamPlayers_byID);
         newTeam->teamPlayers_byRank.build_from_two_merged_trees(team1->teamPlayers_byRank ,team2->teamPlayers_byRank);
 
+         if(TeamsTree.insert(newTeamId,newTeam) != AVLTreeResult::AVL_TREE_SUCCESS)
+        {
+            return StatusType::FAILURE;
+        }
+        if(newTeam->playersCount >= 11 && newTeam->gksCount >= 1)
+        {
+            newTeam->isKosher = true;
+            KosherTree.insert(newTeamId,newTeam);
+        }
+        TeamsTree.remove(teamId1);
+        TeamsTree.remove(teamId2);
+        KosherTree.remove(teamId1);
+        KosherTree.remove(teamId2);
         delete[] array_key_team1;
         delete[] array_data_team1;
         delete[] array_key_team2;
@@ -528,8 +544,23 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
             array_data_team2[i]->teamP = newTeam;
             array_data_team2[i]->gamesPlayed += team2->gamesPlayed - array_data_team2[i]->teamGamesPlayed_preAdd;
         }
+        team1->totalGoals += team2->totalGoals;
+        team1->totalCards += team2->totalCards;
+        team1->playersCount += team2->playersCount;
+        team1->gksCount += team2->gksCount;
+
         team1->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID,team2->teamPlayers_byID);
         team1->teamPlayers_byRank.build_from_two_merged_trees(team1->teamPlayers_byRank,team2->teamPlayers_byRank);
+
+        if(!(team1->isKosher) && team1->playersCount >= 11 && team1->gksCount >= 1)
+        {
+            team1->isKosher = true;
+            KosherTree.insert(newTeamId,team1);
+        }
+        KosherTree.remove(teamId2);
+        TeamsTree.remove(teamId2);
+
+
         delete[] array_key_team2;
         delete[] array_data_team2;
     }
@@ -544,8 +575,24 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
             array_data_team1[i]->teamP = newTeam;
             array_data_team1[i]->gamesPlayed += team1->gamesPlayed - array_data_team1[i]->teamGamesPlayed_preAdd;
         }
+
+
+        team2->totalGoals += team1->totalGoals;
+        team2->totalCards += team1->totalCards;
+        team2->playersCount += team1->playersCount;
+        team2->gksCount += team1->gksCount;
+
         team2->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID, team2->teamPlayers_byID);
         team2->teamPlayers_byRank.build_from_two_merged_trees(team1->teamPlayers_byRank, team2->teamPlayers_byRank);
+
+        if(!(team2->isKosher) && team2->playersCount >= 11 && team2->gksCount >= 1)
+        {
+            team2->isKosher = true;
+            KosherTree.insert(newTeamId,team2);
+        }
+        KosherTree.remove(teamId1);
+        TeamsTree.remove(teamId1);
+
         delete[] array_key_team1;
         delete[] array_data_team1;
     }
