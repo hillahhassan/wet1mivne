@@ -522,11 +522,21 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         {
             newTeam->isKosher = true;
             KosherTree.insert(newTeamId,newTeam);
+            amount_of_kosher++;
+        }
+
+        if(team1->isKosher)
+        {
+            KosherTree.remove(teamId1);
+            amount_of_kosher--;
+        }
+        if(team2->isKosher)
+        {
+            KosherTree.remove(teamId2);
+            amount_of_kosher--;
         }
         TeamsTree.remove(teamId1);
         TeamsTree.remove(teamId2);
-        KosherTree.remove(teamId1);
-        KosherTree.remove(teamId2);
         delete[] array_key_team1;
         delete[] array_data_team1;
         delete[] array_key_team2;
@@ -556,8 +566,14 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         {
             team1->isKosher = true;
             KosherTree.insert(newTeamId,team1);
+            amount_of_kosher++;
         }
-        KosherTree.remove(teamId2);
+
+        if(team2->isKosher)
+        {
+            KosherTree.remove(teamId2);
+            amount_of_kosher--;
+        }
         TeamsTree.remove(teamId2);
 
 
@@ -589,9 +605,15 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         {
             team2->isKosher = true;
             KosherTree.insert(newTeamId,team2);
+            amount_of_kosher++;
         }
-        KosherTree.remove(teamId1);
         TeamsTree.remove(teamId1);
+
+        if(team1->isKosher)
+        {
+            KosherTree.remove(teamId1);
+            amount_of_kosher--;
+        }
 
         delete[] array_key_team1;
         delete[] array_data_team1;
