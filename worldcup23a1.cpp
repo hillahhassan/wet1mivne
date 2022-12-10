@@ -736,7 +736,7 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
         if(key_array[i] >= minTeamId && key_array[i] <= maxTeamId)
         {
             eligible_Keys[iptr] = key_array[i];
-            eligible_points[iptr++] = data_array[i]->points;
+            eligible_points[iptr++] = data_array[i]->points + data_array[i]->totalGoals - data_array[i]->totalCards;
         }
         if(key_array[i] > maxTeamId)
         {
