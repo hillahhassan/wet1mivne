@@ -23,12 +23,12 @@ StatusType world_cup_t::add_team(int teamId, int points)
         return StatusType::INVALID_INPUT;
     }
 
-
+    std::shared_ptr<Team> newTeam(new Team(teamId, points));
 
     try
     {
-        std::shared_ptr<Team> new_team_ptr(new Team(teamId, points));
-        if(TeamsTree.insert(teamId, new_team_ptr) != AVLTreeResult::AVL_TREE_SUCCESS)
+
+        if(TeamsTree.insert(teamId, newTeam) != AVLTreeResult::AVL_TREE_SUCCESS)
         {
             return StatusType::FAILURE;
         }
@@ -557,6 +557,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         team1->totalGoals += team2->totalGoals;
         team1->totalCards += team2->totalCards;
         team1->playersCount += team2->playersCount;
+        team1->points = newPoints;
         team1->gksCount += team2->gksCount;
 
         team1->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID,team2->teamPlayers_byID);
@@ -596,6 +597,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         team2->totalGoals += team1->totalGoals;
         team2->totalCards += team1->totalCards;
         team2->playersCount += team1->playersCount;
+        team2->points = newPoints;
         team2->gksCount += team1->gksCount;
 
         team2->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID, team2->teamPlayers_byID);

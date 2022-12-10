@@ -43,6 +43,8 @@ struct Team {
                                    isKosher(false) {
     }
 
+    ~Team() = default;
+
 };
 
 #endif //WET1MIVNE_MASTER_TEAM_H
