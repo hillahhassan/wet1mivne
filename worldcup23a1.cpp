@@ -22,16 +22,15 @@ StatusType world_cup_t::add_team(int teamId, int points) {
         return StatusType::INVALID_INPUT;
     }
 
-    std::shared_ptr<Team> new_team_ptr;
+
     try {
-        new_team_ptr.reset(new Team(teamId, points));
+        std::shared_ptr<Team> new_team_ptr(new Team(teamId, points));
         if (TeamsTree.insert(teamId, new_team_ptr) != AVLTreeResult::AVL_TREE_SUCCESS) {
             return StatusType::FAILURE;
         }
     }
 
     catch (const std::bad_alloc &) {
-        new_team_ptr.reset();
         return StatusType::ALLOCATION_ERROR;
     }
 
@@ -406,13 +405,13 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
         return StatusType::FAILURE;
     }
     int newPoints = team1->points + team2->points;
-    std::shared_ptr<Team> newTeam(new Team(newTeamId, newPoints));
+
     if (teamId1 != newTeamId && teamId2 != newTeamId) {
         if (TeamsTree.contains(newTeamId) == AVL_TREE_SUCCESS) {
 
             return StatusType::FAILURE;
         }
-
+        std::shared_ptr<Team> newTeam(new Team(newTeamId, newPoints));
 
         int *array_key_team1 = new int[team1->playersCount];
         std::shared_ptr<Player> *array_data_team1 = new std::shared_ptr<Player>[team1->playersCount];
@@ -468,7 +467,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
         team2->teamPlayers_byID.to_sorted_keys_and_data(array_key_team2, array_data_team2);
         for (int i = 0; i < team2->playersCount; i++) {
             array_data_team2[i]->teamId = newTeamId;
-            array_data_team2[i]->teamP = newTeam;
+            array_data_team2[i]->teamP = team1;
             array_data_team2[i]->gamesPlayed += team2->gamesPlayed - array_data_team2[i]->teamGamesPlayed_preAdd;
         }
         team1->totalGoals += team2->totalGoals;
@@ -500,7 +499,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
         team1->teamPlayers_byID.to_sorted_keys_and_data(array_key_team1, array_data_team1);
         for (int i = 0; i < team1->playersCount; i++) {
             array_data_team1[i]->teamId = newTeamId;
-            array_data_team1[i]->teamP = newTeam;
+            array_data_team1[i]->teamP = team2;
             array_data_team1[i]->gamesPlayed += team1->gamesPlayed - array_data_team1[i]->teamGamesPlayed_preAdd;
         }
 
