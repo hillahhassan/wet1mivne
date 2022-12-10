@@ -623,7 +623,7 @@ AVLTree<K, T>::AVLTree(K sorted_key_array[], T sorted_data_array[], int size) : 
 
 /*helper function that traverses a tree inorder and puts keys and data into array (both inorder according to key)*/
 template<class K, class T>
-void AVLTree<K, T>::inorder_tree_to_array(Node<K, T> *root, K key_array[], T data_array[], int *iptr) {
+void AVLTree<K, T>::inorder_tree_to_array(Node<K, T> *root, K key_array[], T *const data_array, int *iptr) {
     if (root == NULL) {
         return;
     }
@@ -639,8 +639,8 @@ void AVLTree<K, T>::inorder_tree_to_array(Node<K, T> *root, K key_array[], T dat
 }
 
 /*helper function that traverses a tree inorder and puts keys and data into array (both inorder according to key)*/
-template<class K, class T>
-void AVLTree<K, T>::inorder_tree_data_to_array(Node<K, T> *root, T data_array[], int *iptr) {
+template<typename K, typename T>
+void AVLTree<K, T>::inorder_tree_data_to_array(Node<K, T> *root, T *const data_array, int *iptr) {
     if (root == NULL) {
         return;
     }
@@ -654,7 +654,7 @@ void AVLTree<K, T>::inorder_tree_data_to_array(Node<K, T> *root, T data_array[],
 
 //copies tree data and keys into respective arrays
 template<class K, class T>
-void AVLTree<K, T>::to_sorted_keys_and_data(K key_array[], T data_array[]) {
+void AVLTree<K, T>::to_sorted_keys_and_data(K key_array[], T *const data_array) {
     int i = 0;
     if(key_array != nullptr)
     {

@@ -307,17 +307,14 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
     try
     {
 
-        player_to_update->goals += scoredGoals;
-        player_to_update->gamesPlayed += gamesPlayed;
-        player_to_update->cards += cardsReceived;
 
-        std::shared_ptr<Player> player_to_insert(new Player(*player_to_update));
+
+
 
         // Remove the old player from the ranking tree
         RankingTree.remove(*player_to_update);
 
-        // Insert the new player with updated stats into the ranking tree
-        RankingTree.insert(*player_to_insert,playerId);
+
 
         // Update team statistics
         std::shared_ptr<Team> team_of_player = player_to_update->teamP;
@@ -325,9 +322,17 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
         // Remove the old player from the ranking tree
         team_of_player->teamPlayers_byRank.remove(*player_to_update);
 
+        player_to_update->goals += scoredGoals;
+        player_to_update->gamesPlayed += gamesPlayed;
+        player_to_update->cards += cardsReceived;
+        std::shared_ptr<Player> player_to_insert(new Player(*player_to_update));
+
+
+        // Insert the new player with updated stats into the ranking tree
+        RankingTree.insert(*player_to_insert,playerId);
+
         // Insert the new player with updated stats into the ranking tree
         team_of_player->teamPlayers_byRank.insert(*player_to_insert,playerId);
-
 
         team_of_player->totalGoals += scoredGoals;
         team_of_player->totalCards += cardsReceived;
