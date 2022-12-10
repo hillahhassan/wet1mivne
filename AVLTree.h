@@ -125,7 +125,7 @@ private:
                                      int size2,
                                      K merged_key_array[], T merged_data_array[]);
 
-    Node<K, T> *root() {
+    Node<K, T> *root() const {
         return dummy_root->left_son;
     }
 
@@ -137,26 +137,22 @@ public:
     AVLTree(const AVLTree<K, T> &);
 
 
-    int max(int a, int b)
-    {
-        if(a > b)
+    int max(int a, int b) {
+        if (a > b)
             return a;
         return b;
     }
 
-    int getHight()
-    {
+    int getHight() {
         return dummy_root->left_son->height;
     }
 
-    int getHightReal()
-    {
+    int getHightReal() {
         return getHightRec(dummy_root->left_son);
     }
 
-    int getHightRec(Node<K, T>* node)
-    {
-        if(node == nullptr)
+    int getHightRec(Node<K, T> *node) {
+        if (node == nullptr)
             return -1;
         return 1 + max(getHightRec(node->left_son), getHightRec(node->right_son));
     }
@@ -179,13 +175,13 @@ public:
         return this->size;
     }
 
-    static AVLTree<K, T> *merge_two_trees(AVLTree<K, T> *tree1, AVLTree<K, T> *tree2);
+    void build_from_two_merged_trees(const AVLTree<K, T> &tree1, const AVLTree<K, T> &tree2);
 
     K *get_prev_inorder(const K &);
 
     K *get_next_inorder(const K &);
 
-    void to_sorted_keys_and_data(K key_array[], T data_array[]);
+    void to_sorted_keys_and_data(K key_array[], T data_array[]) const;
 };
 
 /*helper function that copies a tree and returns pointer to the copied root*/
@@ -356,8 +352,8 @@ AVLTreeResult AVLTree<K, T>::find(const K &key, T *found_data) {
 }
 
 
-template<class K,class T>
-AVLTreeResult AVLTree<K,T>::contains(const K &key) {
+template<class K, class T>
+AVLTreeResult AVLTree<K, T>::contains(const K &key) {
     Node<K, T> *found_node = find_aux(this->root(), key);
     if (found_node == NULL) {
         return AVL_TREE_DOES_NOT_EXIST;
@@ -629,7 +625,7 @@ void AVLTree<K, T>::inorder_tree_to_array(Node<K, T> *root, K key_array[], T *co
     }
 
     inorder_tree_to_array(root->left_son, key_array, data_array, iptr);
-    if(key_array != nullptr) {
+    if (key_array != nullptr) {
         key_array[*iptr] = root->key;
     }
     data_array[*iptr] = root->data;
@@ -654,14 +650,11 @@ void AVLTree<K, T>::inorder_tree_data_to_array(Node<K, T> *root, T *const data_a
 
 //copies tree data and keys into respective arrays
 template<class K, class T>
-void AVLTree<K, T>::to_sorted_keys_and_data(K key_array[], T *const data_array) {
+void AVLTree<K, T>::to_sorted_keys_and_data(K key_array[], T *const data_array) const {
     int i = 0;
-    if(key_array != nullptr)
-    {
+    if (key_array != nullptr) {
         inorder_tree_to_array(this->root(), key_array, data_array, &i);
-    }
-    else
-    {
+    } else {
         inorder_tree_data_to_array(this->root(), data_array, &i);
     }
 }
@@ -706,31 +699,28 @@ AVLTree<K, T>::merge_key_arrays_and_data_arrays(K key_array1[], K key_array2[], 
 
 /*takes two trees and merges them into a new one using the O(size of merged tree) algorithm from class*/
 template<class K, class T>
-AVLTree<K, T> *AVLTree<K, T>::merge_two_trees(AVLTree<K, T> *tree1, AVLTree<K, T> *tree2) {
-    if (tree1 == NULL || tree2 == NULL) {
-        return NULL;
-    }
-
+void AVLTree<K, T>::build_from_two_merged_trees(const AVLTree<K, T> &tree1, const AVLTree<K, T> &tree2) {
     //put trees 1 and 2 into arrays
-    K *key_array1 = new K[tree1->size];
-    T *data_array1 = new T[tree1->size];
+    K *key_array1 = new K[tree1.size];
+    T *data_array1 = new T[tree1.size];
 
-    K *key_array2 = new K[tree2->size];
-    T *data_array2 = new T[tree2->size];
+    K *key_array2 = new K[tree2.size];
+    T *data_array2 = new T[tree2.size];
 
-    tree1->to_sorted_keys_and_data(key_array1, data_array1);
-    tree2->to_sorted_keys_and_data(key_array2, data_array2);
+    tree1.to_sorted_keys_and_data(key_array1, data_array1);
+    tree2.to_sorted_keys_and_data(key_array2, data_array2);
 
     //merge the arrays
 
-    K *merged_key_array = new K[tree1->size + tree2->size];
-    T *merged_data_array = new T[tree1->size + tree2->size];
+    K *merged_key_array = new K[tree1.size + tree2.size];
+    T *merged_data_array = new T[tree1.size + tree2.size];
 
-    merge_key_arrays_and_data_arrays(key_array1, key_array2, data_array1, data_array2, tree1->size, tree2->size,
+    merge_key_arrays_and_data_arrays(key_array1, key_array2, data_array1, data_array2, tree1.size, tree2.size,
                                      merged_key_array, merged_data_array);
 
     //call c'tor that takes an array and build a tree
-    AVLTree<K, T> *merged_tree = new AVLTree<K, T>(merged_key_array, merged_data_array, tree1->size + tree2->size);
+    //uses actual operator=()
+    *this = AVLTree<K, T>(merged_key_array, merged_data_array, tree1.size + tree2.size);
 
     //return that tree
     delete[] key_array1;
@@ -739,8 +729,6 @@ AVLTree<K, T> *AVLTree<K, T>::merge_two_trees(AVLTree<K, T> *tree1, AVLTree<K, T
     delete[] data_array2;
     delete[] merged_key_array;
     delete[] merged_data_array;
-
-    return merged_tree;
 }
 
 /*gets previous element in tree according to key inorder arrangement. if the key is the smallest in the tree NULL is returned*/

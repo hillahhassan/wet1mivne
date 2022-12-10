@@ -508,9 +508,13 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
         }
 
         newTeam->playersCount = team1->playersCount + team2->playersCount;
-        newTeam->teamPlayers_byID.merge_two_trees(&team1->teamPlayers_byID ,&team2->teamPlayers_byID);
-        newTeam->teamPlayers_byRank.merge_two_trees(&team1->teamPlayers_byRank ,&team2->teamPlayers_byRank);
+        newTeam->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID ,team2->teamPlayers_byID);
+        newTeam->teamPlayers_byRank.build_from_two_merged_trees(team1->teamPlayers_byRank ,team2->teamPlayers_byRank);
 
+        delete[] array_key_team1;
+        delete[] array_data_team1;
+        delete[] array_key_team2;
+        delete[] array_data_team2;
     }
 
     else if(teamId1 == newTeamId)
@@ -524,8 +528,8 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
             array_data_team2[i]->teamP = newTeam;
             array_data_team2[i]->gamesPlayed += team2->gamesPlayed - array_data_team2[i]->teamGamesPlayed_preAdd;
         }
-        team1->teamPlayers_byID.merge_two_trees(&team1->teamPlayers_byID,&team2->teamPlayers_byID);
-        team1->teamPlayers_byRank.merge_two_trees(&team1->teamPlayers_byRank,&team2->teamPlayers_byRank);
+        team1->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID,team2->teamPlayers_byID);
+        team1->teamPlayers_byRank.build_from_two_merged_trees(team1->teamPlayers_byRank,team2->teamPlayers_byRank);
         delete[] array_key_team2;
         delete[] array_data_team2;
     }
@@ -540,8 +544,8 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId)
             array_data_team1[i]->teamP = newTeam;
             array_data_team1[i]->gamesPlayed += team1->gamesPlayed - array_data_team1[i]->teamGamesPlayed_preAdd;
         }
-        team2->teamPlayers_byID.merge_two_trees(&team1->teamPlayers_byID, &team2->teamPlayers_byID);
-        team2->teamPlayers_byRank.merge_two_trees(&team1->teamPlayers_byRank, &team2->teamPlayers_byRank);
+        team2->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID, team2->teamPlayers_byID);
+        team2->teamPlayers_byRank.build_from_two_merged_trees(team1->teamPlayers_byRank, team2->teamPlayers_byRank);
         delete[] array_key_team1;
         delete[] array_data_team1;
     }
