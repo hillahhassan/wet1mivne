@@ -36,7 +36,6 @@ struct Player {
     ~Player() = default;
     Player &operator=(const Player &player)
     {
-        Player temp(player);
         if(this == &player)
         {
             return *this;
