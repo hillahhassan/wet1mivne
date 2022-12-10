@@ -51,6 +51,7 @@ StatusType world_cup_t::remove_team(int teamId) {
         if (TeamsTree.remove(teamId) != AVLTreeResult::AVL_TREE_SUCCESS) {
             return StatusType::FAILURE;
         }
+        KosherTree.remove(teamId);
         return StatusType::SUCCESS;
     }
     return StatusType::FAILURE;
