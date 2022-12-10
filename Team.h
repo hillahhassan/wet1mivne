@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include "Player.h"
 
-#pragma once
 struct Player; // forward declaration
 
 

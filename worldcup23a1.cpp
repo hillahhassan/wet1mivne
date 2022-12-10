@@ -5,8 +5,7 @@
 #include <stdio.h>
 /// Insert AVLTree<int, std::shared_ptr<Team>>(), AVLTree<std::shared_ptr<Player>, int>()
 
-world_cup_t::world_cup_t() :  TeamsTree(), RankingTree()
-        , PlayersTree(),KosherTree(), amount_of_kosher(0),g_playersCount(0),g_topScorerID(0),g_topScorerGoals(0),g_topScorerCards(0)
+world_cup_t::world_cup_t() : PlayersTree(),KosherTree(), amount_of_kosher(0),g_topScorerGoals(0),g_topScorerCards(0)
 {
 }
 
@@ -104,6 +103,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
     bool playerTeam_inserted = false;
     bool ranking_inserted = false;
     bool teamRanking_inserted = false;
+    new_player_ptr->teamGamesPlayed_preAdd = team_of_player->gamesPlayed;
     try
     {
         if(PlayersTree.insert(playerId, new_player_ptr) != AVLTreeResult::AVL_TREE_SUCCESS)
@@ -652,13 +652,63 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId)
         return output_t<int>(StatusType::FAILURE);
     }
 
-    if(player->close_NextPlayer < player->close_PrevPlayer)
+
+    if(player->close_NextPlayer == nullptr)
     {
         return output_t<int>(player->close_PrevPlayer->playerId);
     }
-    else
+    else if(player->close_PrevPlayer == nullptr)
     {
         return output_t<int>(player->close_NextPlayer->playerId);
+    }
+    else
+    {
+        int Next_Goals_Diff = abs(player->close_NextPlayer->goals - player->goals);
+        int Prev_Goals_Diff = abs(player->goals - player->close_PrevPlayer->goals);
+        if(Next_Goals_Diff < Prev_Goals_Diff)
+        {
+            return output_t<int>(player->close_NextPlayer->playerId);
+        }
+        else if(Next_Goals_Diff > Prev_Goals_Diff)
+        {
+            return output_t<int>(player->close_PrevPlayer->playerId);
+        }
+        else
+        {
+            int Prev_Cards_Diff = abs(player->close_PrevPlayer->cards - player->cards);
+            int Next_Cards_Diff = abs(player->close_NextPlayer->cards - player->cards);
+            if(Next_Cards_Diff > Prev_Cards_Diff)
+            {
+                return output_t<int>(player->close_NextPlayer->playerId);
+            }
+            else if(Next_Cards_Diff < Prev_Cards_Diff)
+            {
+                return output_t<int>(player->close_PrevPlayer->playerId);
+            }
+            else{
+                int Prev_ID_Diff = abs(player->close_PrevPlayer->playerId - player->playerId);
+                int Next_ID_Diff = abs(player->close_NextPlayer->playerId - player->playerId);
+                if(Next_ID_Diff > Prev_ID_Diff)
+                {
+                    return output_t<int>(player->close_NextPlayer->playerId);
+                }
+                else if(Next_ID_Diff < Prev_ID_Diff)
+                {
+                    return output_t<int>(player->close_PrevPlayer->playerId);
+                }
+                else
+                {
+                    if(player->close_PrevPlayer->playerId > player->close_NextPlayer->playerId)
+                    {
+                        return output_t<int>(player->close_PrevPlayer->playerId);
+                    }
+                    else
+                    {
+                        return output_t<int>(player->close_NextPlayer->playerId);
+                    }
+                }
+            }
+        }
     }
 
 }
@@ -666,9 +716,13 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId)
 output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
 {
 
-    if(minTeamId < 0 || maxTeamId < 0 || maxTeamId<minTeamId )
+    if(minTeamId < 0 || maxTeamId < 0 || maxTeamId < minTeamId )
     {
         return output_t<int>(StatusType::INVALID_INPUT);
+    }
+    if(amount_of_kosher < 1)
+    {
+        return output_t<int>(StatusType::FAILURE);
     }
     int* key_array = new int[amount_of_kosher];
     std::shared_ptr<Team>* data_array = new std::shared_ptr<Team>[amount_of_kosher];
@@ -734,8 +788,12 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId)
         }
         //(eligible_Keys, winners_keys, jptr * sizeof(int));
         //(eligible_points, winners_points, jptr * sizeof(int));
-        *eligible_Keys = *winners_keys;
-        *eligible_points = *winners_points;
+        int *eKeysPtr = eligible_Keys;
+        int *ePointsPtr = eligible_points;
+        eligible_Keys = winners_keys;
+        eligible_points = winners_points;
+        winners_keys = eKeysPtr;
+        winners_points = ePointsPtr;
         prev_amount = jptr;
     }
     const int winner_id = eligible_Keys[0];

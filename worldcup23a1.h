@@ -29,11 +29,11 @@ private:
     AVLTree<int, std::shared_ptr<Team>> KosherTree;
 
     //Global Variables:
-    int g_topScorerID;
+    int g_topScorerID = 0;
     int amount_of_kosher;
-    int g_topScorerGoals;
+    int g_topScorerGoals = 0;
     int g_topScorerCards;
-    int g_playersCount;
+    int g_playersCount = 0;
 	//
 	// Here you may add anything you want
 	//

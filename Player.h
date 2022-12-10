@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include "Team.h"
 
+struct Team; // forward declaration
+
+
 struct Player {
     int playerId;
     int teamId;
@@ -26,7 +29,7 @@ struct Player {
     Player(int playerId, int teamId, int gamesPlayed, int goals, int cards, bool goalKeeper, std::shared_ptr<Team> team)
             : playerId(playerId), teamId(teamId), gamesPlayed(gamesPlayed), goals(goals), cards(cards),
               goalKeeper(goalKeeper), teamP(team), close_PrevPlayer(nullptr), close_NextPlayer(nullptr) {
-        teamGamesPlayed_preAdd = teamP->gamesPlayed;
+
     }
 
     Player() = default;
