@@ -5,6 +5,36 @@
 #include <stdio.h>
 /// Insert AVLTree<int, std::shared_ptr<Team>>(), AVLTree<std::shared_ptr<Player>, int>()
 
+//If the top scorer of team1 is better, return true. Else return false.
+bool world_cup_t::cmprTeam_topScorer(std::shared_ptr<Team> team1, std::shared_ptr<Team> team2)
+{
+    if(team1->t_topScorerGoals > team2->t_topScorerGoals)
+    {
+        return true;
+    }
+    else if(team1->t_topScorerGoals < team2->t_topScorerGoals)
+    {
+        return false;
+    }
+    else
+    {
+        if(team1->t_topScorerCards < team2->t_topScorerCards)
+        {
+            return true;
+        }
+        else if(team1->t_topScorerCards > team2->t_topScorerCards)
+        {
+            return false;
+        }
+        else
+        {
+            return team1->t_topScorerId > team2->t_topScorerId;
+        }
+    }
+
+
+}
+
 world_cup_t::world_cup_t()
         : PlayersTree(), KosherTree(), amount_of_kosher(0), g_topScorerGoals(0), g_topScorerCards(0) {
 }
@@ -21,12 +51,15 @@ StatusType world_cup_t::add_team(int teamId, int points) {
         return StatusType::INVALID_INPUT;
     }
 
-    std::shared_ptr<Team> newTeam(new Team(teamId, points));
-
+    std::shared_ptr<Team> new_Team(new (std::nothrow) Team(teamId, points));
+    if(!new_Team)
+    {
+        return StatusType::ALLOCATION_ERROR;
+    }
     try
     {
 
-        if(TeamsTree.insert(teamId, newTeam) != AVLTreeResult::AVL_TREE_SUCCESS)
+        if(TeamsTree.insert(teamId, new_Team) != AVLTreeResult::AVL_TREE_SUCCESS)
         {
             return StatusType::FAILURE;
         }
@@ -80,7 +113,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 
     try {
         new_player_ptr.reset(new Player(playerId, teamId, gamesPlayed, goals,
-                                        cards, goalKeeper, team_of_player));
+                                        cards, goalKeeper, team_of_player.get()));
     }
     catch (const std::bad_alloc &) {
         return StatusType::ALLOCATION_ERROR;
@@ -197,7 +230,7 @@ StatusType world_cup_t::remove_player(int playerId) {
 
     std::shared_ptr<Player> PrevPlayer = player_to_remove->close_PrevPlayer;
     std::shared_ptr<Player> NextPlayer = player_to_remove->close_NextPlayer;
-    std::shared_ptr<Team> team_of_player = player_to_remove->teamP;
+    Team* team_of_player = player_to_remove->teamP;
     team_of_player->totalGoals -= player_to_remove->goals;
     team_of_player->totalCards -= player_to_remove->cards;
     team_of_player->gksCount -= player_to_remove->goalKeeper;
@@ -273,7 +306,7 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
 
 
         // Update team statistics
-        std::shared_ptr<Team> team_of_player = player_to_update->teamP;
+        Team* team_of_player = player_to_update->teamP;
 
         // Remove the old player from the ranking tree
         team_of_player->teamPlayers_byRank.remove(*player_to_update);
@@ -421,7 +454,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
         team1->teamPlayers_byID.to_sorted_keys_and_data(array_key_team1, array_data_team1);
         for (int i = 0; i < team1->playersCount; i++) {
             array_data_team1[i]->teamId = newTeamId;
-            array_data_team1[i]->teamP = newTeam;
+            array_data_team1[i]->teamP = newTeam.get();
             array_data_team1[i]->gamesPlayed += team1->gamesPlayed - array_data_team1[i]->teamGamesPlayed_preAdd;
         }
 
@@ -430,8 +463,21 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
         team2->teamPlayers_byID.to_sorted_keys_and_data(array_key_team2, array_data_team2);
         for (int i = 0; i < team2->playersCount; i++) {
             array_data_team2[i]->teamId = newTeamId;
-            array_data_team2[i]->teamP = newTeam;
+            array_data_team2[i]->teamP = newTeam.get();
             array_data_team2[i]->gamesPlayed += team2->gamesPlayed - array_data_team2[i]->teamGamesPlayed_preAdd;
+        }
+
+        if(cmprTeam_topScorer(team1,team2))
+        {
+            newTeam->t_topScorerId = team1->t_topScorerId;
+            newTeam->t_topScorerGoals = team1->t_topScorerGoals;
+            newTeam->t_topScorerCards = team1->t_topScorerCards;
+        }
+        else
+        {
+            newTeam->t_topScorerId = team2->t_topScorerId;
+            newTeam->t_topScorerGoals = team2->t_topScorerGoals;
+            newTeam->t_topScorerCards = team2->t_topScorerCards;
         }
         newTeam->totalGoals = team1->totalGoals + team2->totalGoals;
         newTeam->totalCards = team1->totalCards + team2->totalCards;
@@ -470,9 +516,18 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
         team2->teamPlayers_byID.to_sorted_keys_and_data(array_key_team2, array_data_team2);
         for (int i = 0; i < team2->playersCount; i++) {
             array_data_team2[i]->teamId = newTeamId;
-            array_data_team2[i]->teamP = team1;
+            array_data_team2[i]->teamP = team1.get();
             array_data_team2[i]->gamesPlayed += team2->gamesPlayed - array_data_team2[i]->teamGamesPlayed_preAdd;
         }
+
+
+        if(cmprTeam_topScorer(team2,team1))
+        {
+            team1->t_topScorerId = team2->t_topScorerId;
+            team1->t_topScorerGoals = team2->t_topScorerGoals;
+            team1->t_topScorerCards = team2->t_topScorerCards;
+        }
+
         team1->totalGoals += team2->totalGoals;
         team1->totalCards += team2->totalCards;
         team1->playersCount += team2->playersCount;
@@ -503,11 +558,17 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
         team1->teamPlayers_byID.to_sorted_keys_and_data(array_key_team1, array_data_team1);
         for (int i = 0; i < team1->playersCount; i++) {
             array_data_team1[i]->teamId = newTeamId;
-            array_data_team1[i]->teamP = team2;
+            array_data_team1[i]->teamP = team2.get();
             array_data_team1[i]->gamesPlayed += team1->gamesPlayed - array_data_team1[i]->teamGamesPlayed_preAdd;
         }
 
 
+        if(cmprTeam_topScorer(team1,team2))
+        {
+            team2->t_topScorerId = team1->t_topScorerId;
+            team2->t_topScorerGoals = team1->t_topScorerGoals;
+            team2->t_topScorerCards = team1->t_topScorerCards;
+        }
         team2->totalGoals += team1->totalGoals;
         team2->totalCards += team1->totalCards;
         team2->playersCount += team1->playersCount;

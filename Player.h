@@ -22,11 +22,11 @@ struct Player {
     int cards;
     int teamGamesPlayed_preAdd;
     bool goalKeeper;
-    std::shared_ptr<Team> teamP;
+    Team* teamP;
     std::shared_ptr<Player> close_PrevPlayer;
     std::shared_ptr<Player> close_NextPlayer;
 
-    Player(int playerId, int teamId, int gamesPlayed, int goals, int cards, bool goalKeeper, std::shared_ptr<Team> team)
+    Player(int playerId, int teamId, int gamesPlayed, int goals, int cards, bool goalKeeper, Team* team)
             : playerId(playerId), teamId(teamId), gamesPlayed(gamesPlayed), goals(goals), cards(cards),
               goalKeeper(goalKeeper), teamP(team), close_PrevPlayer(nullptr), close_NextPlayer(nullptr) {
 
