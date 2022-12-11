@@ -138,27 +138,6 @@ public:
 
     AVLTree(const AVLTree<K, T> &);
 
-
-    int max(int a, int b) {
-        if (a > b)
-            return a;
-        return b;
-    }
-
-    int getHight() {
-        return dummy_root->left_son->height;
-    }
-
-    int getHightReal() {
-        return getHightRec(dummy_root->left_son);
-    }
-
-    int getHightRec(Node<K, T> *node) {
-        if (node == nullptr)
-            return -1;
-        return 1 + max(getHightRec(node->left_son), getHightRec(node->right_son));
-    }
-
     ~AVLTree();
 
     AVLTree<K, T> &operator=(const AVLTree<K, T> &);
