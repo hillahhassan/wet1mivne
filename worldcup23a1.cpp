@@ -238,6 +238,7 @@ StatusType world_cup_t::remove_player(int playerId) {
     team_of_player->totalGoals -= player_to_remove->goals;
     team_of_player->totalCards -= player_to_remove->cards;
     team_of_player->gksCount -= player_to_remove->goalKeeper;
+    team_of_player->playersCount--;
 
     if (team_of_player->isKosher) {
         if (team_of_player->playersCount < 11 || team_of_player->gksCount < 1) {
@@ -285,7 +286,7 @@ StatusType world_cup_t::remove_player(int playerId) {
     }
 
 
-    team_of_player->playersCount--;
+
 
     g_playersCount--;
     return StatusType::SUCCESS;
