@@ -279,7 +279,7 @@ StatusType world_cup_t::remove_player(int playerId) {
     }
 
 
-    if (playerId = g_topScorerID && PrevPlayer != nullptr) {
+    if (playerId == g_topScorerID && PrevPlayer != nullptr) {
         g_topScorerID = PrevPlayer->playerId;
         g_topScorerGoals = PrevPlayer->goals;
         g_topScorerCards = PrevPlayer->cards;
@@ -783,18 +783,18 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId) {
     }
     int *key_array = new int[amount_of_kosher];
     std::shared_ptr<Team> *data_array = new std::shared_ptr<Team>[amount_of_kosher];
-    KosherTree.to_sorted_keys_and_data(key_array, data_array);
-    const int keys_length = amount_of_kosher;
-    int *eligible_Keys = new int[keys_length];
-    int *eligible_points = new int[keys_length];
+    int amount_of_eligible = 0;
+    KosherTree.to_sorted_ranged_keys_and_data(key_array, data_array, minTeamId,maxTeamId, &amount_of_eligible);
+    int *eligible_Keys = new int[amount_of_eligible];
+    int *eligible_points = new int[amount_of_eligible];
     int iptr = 0;
-    for (int i = 0; i < keys_length; i++) {
+    for (int i = 0; i < amount_of_eligible; i++) {
         if (key_array[i] >= minTeamId && key_array[i] <= maxTeamId) {
             eligible_Keys[iptr] = key_array[i];
             eligible_points[iptr++] = data_array[i]->points + data_array[i]->totalGoals - data_array[i]->totalCards;
         }
         if (key_array[i] > maxTeamId) {
-            i = keys_length;
+            i = amount_of_eligible;
         }
     }
     int eligible_Amount = iptr;

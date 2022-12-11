@@ -117,6 +117,8 @@ private:
 
     static void inorder_tree_to_array(Node<K, T> *root, K key_array[], T data_array[], int *iptr);
 
+    static void inrange_order_tree_to_array(Node<K, T> *root, K key_array[], T *const data_array, int *iptr,
+                                            K minRange, K maxRange, int *count);
 
     static void inorder_tree_data_to_array(Node<K, T> *root, T data_array[], int *iptr);
 
@@ -182,6 +184,8 @@ public:
     K *get_next_inorder(const K &);
 
     void to_sorted_keys_and_data(K key_array[], T data_array[]) const;
+
+    void to_sorted_ranged_keys_and_data(K key_array[], T data_array[], K minRange, K maxRange, int *count) const;
 };
 
 /*helper function that copies a tree and returns pointer to the copied root*/
@@ -617,6 +621,52 @@ AVLTree<K, T>::AVLTree(K sorted_key_array[], T sorted_data_array[], int size) : 
     populate_empty_tree(this->root(), sorted_key_array, sorted_data_array, &i);
 }
 
+/*helper function that traverses a tree inorder and puts keys and data into array (both inorder according to key) within
+ * desired range.*/
+template<class K, class T>
+void AVLTree<K, T>::inrange_order_tree_to_array(Node<K, T> *root, K key_array[], T *const data_array, int *iptr,
+                                                K minRange, K maxRange, int* count) {
+    if (root == NULL) {
+        return;
+    }
+    if(root->key < minRange)
+    {
+        if(root->right_son == NULL)
+        {
+            return;
+        }
+        else
+        {
+            inrange_order_tree_to_array(root->right_son, key_array, data_array, iptr,minRange,maxRange,count);
+        }
+
+    } else if (root->key > maxRange)
+    {
+        if(root->left_son == NULL)
+        {
+            return;
+        }
+        else
+        {
+            inrange_order_tree_to_array(root->left_son, key_array, data_array, iptr,minRange,maxRange,count);
+        }
+    }
+    else if(root->key >= minRange && root->key <= maxRange)
+    {
+        inrange_order_tree_to_array(root->left_son, key_array, data_array, iptr,minRange,maxRange,count);
+        if (key_array != nullptr) {
+            key_array[*iptr] = root->key;
+        }
+        (*count)++;
+        data_array[*iptr] = root->data;
+        (*iptr)++;
+        inrange_order_tree_to_array(root->right_son, key_array, data_array, iptr,minRange,maxRange,count);
+    }
+
+
+
+}
+
 /*helper function that traverses a tree inorder and puts keys and data into array (both inorder according to key)*/
 template<class K, class T>
 void AVLTree<K, T>::inorder_tree_to_array(Node<K, T> *root, K key_array[], T *const data_array, int *iptr) {
@@ -656,6 +706,15 @@ void AVLTree<K, T>::to_sorted_keys_and_data(K key_array[], T *const data_array) 
         inorder_tree_to_array(this->root(), key_array, data_array, &i);
     } else {
         inorder_tree_data_to_array(this->root(), data_array, &i);
+    }
+}
+
+//copies tree data and keys into respective arrays considering they are in the desired range
+template<class K, class T>
+void AVLTree<K, T>::to_sorted_ranged_keys_and_data(K key_array[], T *const data_array, K minRange, K maxRange, int *count) const {
+    int i = 0;
+    if (key_array != nullptr) {
+        inrange_order_tree_to_array(this->root(), key_array, data_array, &i, minRange, maxRange, count);
     }
 }
 
