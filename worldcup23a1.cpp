@@ -3,7 +3,6 @@
 #include "Team.h"
 #include "Player.h"
 #include <stdio.h>
-/// Insert AVLTree<int, std::shared_ptr<Team>>(), AVLTree<std::shared_ptr<Player>, int>()
 
 //If the top scorer of team1 is better, return true. Else return false.
 bool world_cup_t::cmprTeam_topScorer(std::shared_ptr<Team> team1, std::shared_ptr<Team> team2)
@@ -40,12 +39,8 @@ world_cup_t::world_cup_t()
 }
 
 world_cup_t::~world_cup_t() = default;
-/*{
 
-
-}*/
-
-
+//Adds a new team to the world cup database.
 StatusType world_cup_t::add_team(int teamId, int points) {
     if (teamId <= 0 || points < 0) {
         return StatusType::INVALID_INPUT;
@@ -72,6 +67,7 @@ StatusType world_cup_t::add_team(int teamId, int points) {
     return StatusType::SUCCESS;
 }
 
+//Removes a team from the world cup, only if team is empty.
 StatusType world_cup_t::remove_team(int teamId) {
     if (teamId <= 0) {
         return StatusType::INVALID_INPUT;
@@ -89,6 +85,7 @@ StatusType world_cup_t::remove_team(int teamId) {
     return StatusType::FAILURE;
 }
 
+//Adds player to the World Cup and to his respective team.
 StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
                                    int goals, int cards, bool goalKeeper) {
     if (playerId <= 0 || teamId <= 0 || gamesPlayed < 0 || goals < 0 || cards < 0) {
@@ -102,6 +99,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
     std::shared_ptr<Team> team_of_player;
     std::shared_ptr<Player> new_player_ptr;
 
+    //Checks if team exists or player already exists.
     if (TeamsTree.find(teamId, &team_of_player) == AVL_TREE_DOES_NOT_EXIST) {
         return StatusType::FAILURE;
     }
@@ -122,6 +120,8 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
     bool playerTeam_inserted = false;
     bool ranking_inserted = false;
     bool teamRanking_inserted = false;
+
+    //Amount of gamesPlayed of the team when player joined team.
     new_player_ptr->teamGamesPlayed_preAdd = team_of_player->gamesPlayed;
     try {
         if (PlayersTree.insert(playerId, new_player_ptr) != AVLTreeResult::AVL_TREE_SUCCESS) {
@@ -163,10 +163,13 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
         return StatusType::ALLOCATION_ERROR;
     }
 
+    //Adds new player stats contribution to the team.
     team_of_player->totalGoals += goals;
     team_of_player->totalCards += cards;
     team_of_player->gksCount += goalKeeper;
     team_of_player->playersCount++;
+
+    //Checks if team is now kosher.
     if (!team_of_player->isKosher) {
         if (team_of_player->gksCount >= 1 && team_of_player->playersCount >= 11) {
             KosherTree.insert(teamId, team_of_player);
@@ -174,6 +177,8 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
             amount_of_kosher++;
         }
     }
+
+    //Checks for team new top scorer.
     if (goals > team_of_player->t_topScorerGoals ||
         (goals == team_of_player->t_topScorerGoals && (cards < team_of_player->t_topScorerCards ||
                                                        (cards == team_of_player->t_topScorerCards &&
@@ -183,6 +188,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
         team_of_player->t_topScorerCards = cards;
     }
 
+    //Checks for match new top scorer.
     if (goals > g_topScorerGoals ||
         (goals == g_topScorerGoals && (cards < g_topScorerCards ||
                                        (cards == g_topScorerCards && playerId > g_topScorerID)))) {
@@ -191,6 +197,7 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
         g_topScorerCards = cards;
     }
 
+    //Checking for new close players.
     Player *close_next = RankingTree.get_next_inorder(*new_player_ptr);
     Player *close_prev = RankingTree.get_prev_inorder(*new_player_ptr);
 
@@ -217,12 +224,13 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 
     }
 
+    //Incrementing players count in the world cup.
     g_playersCount++;
 
-    //End of redundant
     return StatusType::SUCCESS;
 }
 
+//Removes a player from the world cup.
 StatusType world_cup_t::remove_player(int playerId) {
     if (playerId <= 0) {
         return StatusType::INVALID_INPUT;
@@ -232,6 +240,7 @@ StatusType world_cup_t::remove_player(int playerId) {
         return StatusType::FAILURE;
     }
 
+    //Subtracts stats the player has contributed to the team.
     std::shared_ptr<Player> PrevPlayer = player_to_remove->close_PrevPlayer.lock();
     std::shared_ptr<Player> NextPlayer = player_to_remove->close_NextPlayer.lock();
     std::shared_ptr<Team> team_of_player = player_to_remove->teamP.lock();
@@ -240,6 +249,7 @@ StatusType world_cup_t::remove_player(int playerId) {
     team_of_player->gksCount -= player_to_remove->goalKeeper;
     team_of_player->playersCount--;
 
+    //Checks if team is no longer kosher.
     if (team_of_player->isKosher) {
         if (team_of_player->playersCount < 11 || team_of_player->gksCount < 1) {
             KosherTree.remove(team_of_player->teamId);
@@ -248,10 +258,12 @@ StatusType world_cup_t::remove_player(int playerId) {
         }
     }
 
+    //Removes player from his team inner players trees.
     Player *prevPlayer_in_team = team_of_player->teamPlayers_byRank.get_prev_inorder(*player_to_remove);
     team_of_player->teamPlayers_byID.remove(playerId);
     team_of_player->teamPlayers_byRank.remove(*player_to_remove);
 
+    //checks for new team top scorer.
     if (playerId == team_of_player->t_topScorerId) {
         if (prevPlayer_in_team != nullptr) {
             team_of_player->t_topScorerId = prevPlayer_in_team->playerId;
@@ -263,13 +275,11 @@ StatusType world_cup_t::remove_player(int playerId) {
             team_of_player->t_topScorerCards = 0;
         }
     }
+    //removes player from database.
     PlayersTree.remove(playerId);
     RankingTree.remove(*player_to_remove);
 
-    //PlayersTree.find(NextPlayerId,NextPlayer);
-    //PlayersTree.find(PrevPlayerId,PrevPlayer);
-    //RankingTree.get_next_inorder(PrevPlayer)
-    //RankingTree.get_prev_inorder(NextPlayer)
+    //Updates new close players.
     if (PrevPlayer != nullptr) {
         PrevPlayer->close_NextPlayer = NextPlayer;
     }
@@ -279,6 +289,7 @@ StatusType world_cup_t::remove_player(int playerId) {
     }
 
 
+    //Checks for new top scorer in the world cup.
     if (playerId == g_topScorerID && PrevPlayer != nullptr) {
         g_topScorerID = PrevPlayer->playerId;
         g_topScorerGoals = PrevPlayer->goals;
@@ -332,6 +343,8 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
 
         team_of_player->totalGoals += scoredGoals;
         team_of_player->totalCards += cardsReceived;
+
+        //Checks for new team top scorer.
         if(team_of_player->t_topScorerId == playerId)
         {
             team_of_player->t_topScorerGoals = player_to_update->goals;
@@ -368,6 +381,8 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
 
     std::shared_ptr<Player> temp_closeNext = player_to_update->close_NextPlayer.lock();
     std::shared_ptr<Player> temp_closePrev = player_to_update->close_PrevPlayer.lock();
+
+    //Updates old close players.
     if (temp_closeNext != nullptr) {
         temp_closeNext->close_PrevPlayer = temp_closePrev;
 
@@ -377,9 +392,10 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
     }
 
 
-
+    //Fixing up new close players.
     Player *next_Player = RankingTree.get_next_inorder(*player_to_update);
     Player *prev_Player = RankingTree.get_prev_inorder(*player_to_update);
+
     if (next_Player != nullptr) {
         std::shared_ptr<Player> next_player_ToSave;
         PlayersTree.find(next_Player->playerId, &(next_player_ToSave));
@@ -404,12 +420,11 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
     }
 
 
-
-
-
     return StatusType::SUCCESS;
 }
 
+//Simulates a match between two teams. Calculates accordingly and updates the gamesPlayed and points of each team that
+//played.
 StatusType world_cup_t::play_match(int teamId1, int teamId2) {
 
     if (teamId1 <= 0 || teamId2 <= 0 || teamId1 == teamId2) {
@@ -418,6 +433,8 @@ StatusType world_cup_t::play_match(int teamId1, int teamId2) {
 
     std::shared_ptr<Team> team1;
     std::shared_ptr<Team> team2;
+
+    //Checks if teams are kosher(eligible) for the match.
     if (KosherTree.find(teamId1, &team1) != AVLTreeResult::AVL_TREE_SUCCESS) {
         return StatusType::FAILURE;
     }
@@ -425,9 +442,11 @@ StatusType world_cup_t::play_match(int teamId1, int teamId2) {
         return StatusType::FAILURE;
     }
 
+    //Sums each team score.
     int score_Team1 = team1->points + team1->totalGoals - team1->totalCards;
     int score_Team2 = team2->points + team2->totalGoals - team2->totalCards;
 
+    //Updates team stats after the match ended.
     if (score_Team1 > score_Team2) {
         team1->points += 3;
     } else if (score_Team1 == score_Team2) {
@@ -443,6 +462,7 @@ StatusType world_cup_t::play_match(int teamId1, int teamId2) {
     return StatusType::SUCCESS;
 }
 
+//Returns the number of games played of a specific player within the world cup.
 output_t<int> world_cup_t::get_num_played_games(int playerId) {
     if (playerId <= 0) {
         return output_t<int>(StatusType::INVALID_INPUT);
@@ -457,6 +477,8 @@ output_t<int> world_cup_t::get_num_played_games(int playerId) {
     return output_t<int>(playerCalcGames);
 }
 
+
+//Returns the points a specific team currently has.
 output_t<int> world_cup_t::get_team_points(int teamId) {
     if (teamId <= 0) {
         return output_t<int>(StatusType::INVALID_INPUT);
@@ -470,6 +492,7 @@ output_t<int> world_cup_t::get_team_points(int teamId) {
     return output_t<int>(teamPoints);
 }
 
+//Unites two teams into one.
 StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
     if (teamId2 <= 0 || teamId1 <= 0 || newTeamId <= 0 || teamId1 == teamId2) {
         return StatusType::INVALID_INPUT;
@@ -482,8 +505,11 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
     if (TeamsTree.find(teamId2, &team2) != AVL_TREE_SUCCESS) {
         return StatusType::FAILURE;
     }
+
+    //Sum of both teams points.
     int newPoints = team1->points + team2->points;
 
+    //Checks if the ID is an entirely new ID or is an ID of one of the teams to unite. And then acts accordingly.
     if (teamId1 != newTeamId && teamId2 != newTeamId) {
         if (TeamsTree.contains(newTeamId) == AVL_TREE_SUCCESS) {
 
@@ -493,6 +519,8 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
 
         int *array_key_team1 = new int[team1->playersCount];
         std::shared_ptr<Player> *array_data_team1 = new std::shared_ptr<Player>[team1->playersCount];
+
+        //Updates each player stats in the both teams to their new team.
         team1->teamPlayers_byID.to_sorted_keys_and_data(array_key_team1, array_data_team1);
         for (int i = 0; i < team1->playersCount; i++) {
             array_data_team1[i]->teamId = newTeamId;
@@ -512,6 +540,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             array_data_team2[i]->teamGamesPlayed_preAdd = 0;
         }
 
+        //Checks for new top scorer.
         if(cmprTeam_topScorer(team1,team2))
         {
             newTeam->t_topScorerId = team1->t_topScorerId;
@@ -524,17 +553,22 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             newTeam->t_topScorerGoals = team2->t_topScorerGoals;
             newTeam->t_topScorerCards = team2->t_topScorerCards;
         }
+
+        //Sums rest of important team stats.
         newTeam->totalGoals = team1->totalGoals + team2->totalGoals;
         newTeam->totalCards = team1->totalCards + team2->totalCards;
         newTeam->gksCount = team1->gksCount + team2->gksCount;
         newTeam->playersCount = team1->playersCount + team2->playersCount;
 
+        //Merging both teams inner player trees.
         newTeam->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID, team2->teamPlayers_byID);
         newTeam->teamPlayers_byRank.build_from_two_merged_trees(team1->teamPlayers_byRank, team2->teamPlayers_byRank);
 
         if (TeamsTree.insert(newTeamId, newTeam) != AVLTreeResult::AVL_TREE_SUCCESS) {
             return StatusType::FAILURE;
         }
+
+        //Checks for kosher, and acts accordingly.
         if (newTeam->playersCount >= 11 && newTeam->gksCount >= 1) {
             newTeam->isKosher = true;
             KosherTree.insert(newTeamId, newTeam);
@@ -549,15 +583,20 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             KosherTree.remove(teamId2);
             amount_of_kosher--;
         }
+
+        //Removing the old teams and deleting data.
         TeamsTree.remove(teamId1);
         TeamsTree.remove(teamId2);
         delete[] array_key_team1;
         delete[] array_data_team1;
         delete[] array_key_team2;
         delete[] array_data_team2;
+
     } else if (teamId1 == newTeamId) {
         int *array_key_team2 = new int[team2->playersCount];
         std::shared_ptr<Player> *array_data_team2 = new std::shared_ptr<Player>[team2->playersCount];
+
+        //Updates each player stats in the team2.
         team2->teamPlayers_byID.to_sorted_keys_and_data(array_key_team2, array_data_team2);
         for (int i = 0; i < team2->playersCount; i++) {
             array_data_team2[i]->teamId = newTeamId;
@@ -567,6 +606,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
         }
 
 
+        //Checks for new top scorer
         if(cmprTeam_topScorer(team2,team1))
         {
             team1->t_topScorerId = team2->t_topScorerId;
@@ -574,6 +614,8 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             team1->t_topScorerCards = team2->t_topScorerCards;
         }
 
+
+        //Sums rest of the teams stats.
         team1->totalGoals += team2->totalGoals;
         team1->totalCards += team2->totalCards;
         team1->playersCount += team2->playersCount;
@@ -583,6 +625,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
         team1->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID, team2->teamPlayers_byID);
         team1->teamPlayers_byRank.build_from_two_merged_trees(team1->teamPlayers_byRank, team2->teamPlayers_byRank);
 
+        //Checks for Kosher.
         if (!(team1->isKosher) && team1->playersCount >= 11 && team1->gksCount >= 1) {
             team1->isKosher = true;
             KosherTree.insert(newTeamId, team1);
@@ -593,15 +636,19 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             KosherTree.remove(teamId2);
             amount_of_kosher--;
         }
-        TeamsTree.remove(teamId2);
 
+        //Deleting old team from
+        TeamsTree.remove(teamId2);
 
         delete[] array_key_team2;
         delete[] array_data_team2;
+
     } else if (teamId2 == newTeamId) {
         int *array_key_team1 = new int[team1->playersCount];
         std::shared_ptr<Player> *array_data_team1 = new std::shared_ptr<Player>[team1->playersCount];
         team1->teamPlayers_byID.to_sorted_keys_and_data(array_key_team1, array_data_team1);
+
+        //Updates each player stats in the team1.
         for (int i = 0; i < team1->playersCount; i++) {
             array_data_team1[i]->teamId = newTeamId;
             array_data_team1[i]->teamP = team2;
@@ -609,13 +656,15 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             array_data_team1[i]->teamGamesPlayed_preAdd = team2->gamesPlayed;
         }
 
-
+        //Checks for new top scorer
         if(cmprTeam_topScorer(team1,team2))
         {
             team2->t_topScorerId = team1->t_topScorerId;
             team2->t_topScorerGoals = team1->t_topScorerGoals;
             team2->t_topScorerCards = team1->t_topScorerCards;
         }
+
+        //Sums rest of the teams stats.
         team2->totalGoals += team1->totalGoals;
         team2->totalCards += team1->totalCards;
         team2->playersCount += team1->playersCount;
@@ -625,6 +674,8 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
         team2->teamPlayers_byID.build_from_two_merged_trees(team1->teamPlayers_byID, team2->teamPlayers_byID);
         team2->teamPlayers_byRank.build_from_two_merged_trees(team1->teamPlayers_byRank, team2->teamPlayers_byRank);
 
+
+        //Checks for kosher.
         if (!(team2->isKosher) && team2->playersCount >= 11 && team2->gksCount >= 1) {
             team2->isKosher = true;
             KosherTree.insert(newTeamId, team2);
@@ -635,6 +686,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             amount_of_kosher--;
         }
 
+        //Removing old team from the database.
         TeamsTree.remove(teamId1);
 
         delete[] array_key_team1;
@@ -644,6 +696,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
     return StatusType::SUCCESS;
 }
 
+//Returns the top scorer of a team or the top scorer of the entire world cup
 output_t<int> world_cup_t::get_top_scorer(int teamId) {
     if (teamId == 0) {
         return output_t<int>(StatusType::INVALID_INPUT);
@@ -669,6 +722,7 @@ output_t<int> world_cup_t::get_top_scorer(int teamId) {
     return output_t<int>(StatusType::FAILURE);
 }
 
+//Returns the amount of players in a team or in the entire world cup.
 output_t<int> world_cup_t::get_all_players_count(int teamId) {
     if (teamId == 0) {
         return output_t<int>(StatusType::INVALID_INPUT);
@@ -687,6 +741,7 @@ output_t<int> world_cup_t::get_all_players_count(int teamId) {
     return output_t<int>(StatusType::FAILURE);
 }
 
+//returns all the playing that are playing in a team or the entire world cup.
 StatusType world_cup_t::get_all_players(int teamId, int *const output) {
 
     if (teamId == 0 || output == nullptr) {
@@ -713,6 +768,7 @@ StatusType world_cup_t::get_all_players(int teamId, int *const output) {
     return StatusType::SUCCESS;
 }
 
+//Gets the closest player id, ranking-wise, to desired player.
 output_t<int> world_cup_t::get_closest_player(int playerId, int teamId) {
     if (playerId <= 0 || teamId <= 0) {
         return output_t<int>(StatusType::INVALID_INPUT);
@@ -730,6 +786,8 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId) {
 
     std::shared_ptr<Player> closer_Prev = player->close_PrevPlayer.lock();
     std::shared_ptr<Player> closer_Next = player->close_NextPlayer.lock();
+
+    //Starts comparing between 2 closest players, by rank.
     if (closer_Next.get() == NULL && closer_Prev.get() == NULL)
     {
         return output_t<int>(StatusType::FAILURE);
@@ -773,6 +831,7 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId) {
 
 }
 
+//determines a winner from a set ranged of teams that are eligible for matches.
 output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId) {
 
     if (minTeamId < 0 || maxTeamId < 0 || maxTeamId < minTeamId) {
@@ -781,10 +840,13 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId) {
     if (amount_of_kosher < 1) {
         return output_t<int>(StatusType::FAILURE);
     }
+    //Extracts eligible teams keys and data into sorted arrays.
     int *key_array = new int[amount_of_kosher];
     std::shared_ptr<Team> *data_array = new std::shared_ptr<Team>[amount_of_kosher];
     int amount_of_eligible = 0;
     KosherTree.to_sorted_ranged_keys_and_data(key_array, data_array, minTeamId,maxTeamId, &amount_of_eligible);
+
+    //Calculating team score based on point,cards and goals. And prepares it for the elimination rounds.
     int *eligible_Keys = new int[amount_of_eligible];
     int *eligible_points = new int[amount_of_eligible];
     int iptr = 0;
@@ -797,6 +859,8 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId) {
             i = amount_of_eligible;
         }
     }
+
+    //if no eligible teams within our range.
     int eligible_Amount = iptr;
     if (eligible_Amount < 1) {
         delete[] key_array;
@@ -805,6 +869,8 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId) {
         delete[] eligible_points;
         return output_t<int>(StatusType::FAILURE);
     }
+
+    //Eliminations round, each round it merges a losing team into the winner team and prepares it for next match.
     int winners_Amount = eligible_Amount;
     int prev_amount = winners_Amount;
     int *winners_keys = new int[winners_Amount];
@@ -831,8 +897,8 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId) {
                 j++;
             }
         }
-        //(eligible_Keys, winners_keys, jptr * sizeof(int));
-        //(eligible_points, winners_points, jptr * sizeof(int));
+
+        //Setting next round of matches for last round winners.
         int *eKeysPtr = eligible_Keys;
         int *ePointsPtr = eligible_points;
         eligible_Keys = winners_keys;
@@ -841,7 +907,10 @@ output_t<int> world_cup_t::knockout_winner(int minTeamId, int maxTeamId) {
         winners_points = ePointsPtr;
         prev_amount = jptr;
     }
+
     const int winner_id = eligible_Keys[0];
+
+    //Data deletion
     delete[] eligible_Keys;
     delete[] eligible_points;
     delete[] winners_keys;
