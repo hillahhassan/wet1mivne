@@ -22,6 +22,7 @@
 #include <memory>
 class world_cup_t {
 private:
+
     //Trees:
     AVLTree<int, std::shared_ptr<Player>> PlayersTree;
     AVLTree<Player, int> RankingTree;
@@ -37,6 +38,8 @@ private:
 	//
 	// Here you may add anything you want
 	//
+
+    bool cmprTeam_topScorer(std::shared_ptr<Team> team1, std::shared_ptr<Team> team2);
 	
 public:
 	// <DO-NOT-MODIFY> {

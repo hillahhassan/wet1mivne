@@ -43,7 +43,10 @@ struct Team {
                                    isKosher(false) {
     }
 
-    ~Team() = default;
+    Team() = default;
+
+    ~Team(){
+    };
 
 };
 
