@@ -218,10 +218,6 @@ StatusType world_cup_t::add_player(int playerId, int teamId, int gamesPlayed,
 
     }
 
-
-
-
-
     g_playersCount++;
 
     //End of redundant
@@ -623,12 +619,12 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             KosherTree.insert(newTeamId, team2);
             amount_of_kosher++;
         }
-        TeamsTree.remove(teamId1);
-
         if (team1->isKosher) {
             KosherTree.remove(teamId1);
             amount_of_kosher--;
         }
+
+        TeamsTree.remove(teamId1);
 
         delete[] array_key_team1;
         delete[] array_data_team1;
@@ -730,9 +726,9 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId) {
     {
 
     }
-    else if (closer_Next.get() == NULL) {
+    else if (closer_Next == NULL) {
         return output_t<int>(closer_Prev->playerId);
-    } else if (closer_Prev.get() == NULL) {
+    } else if (closer_Prev == NULL) {
         return output_t<int>(closer_Next->playerId);
     } else {
         int Next_Goals_Diff = abs(closer_Next->goals - player->goals);
@@ -745,16 +741,16 @@ output_t<int> world_cup_t::get_closest_player(int playerId, int teamId) {
             int Prev_Cards_Diff = abs(closer_Prev->cards - player->cards);
             int Next_Cards_Diff = abs(closer_Next->cards - player->cards);
             if (Next_Cards_Diff > Prev_Cards_Diff) {
-                return output_t<int>(closer_Next->playerId);
-            } else if (Next_Cards_Diff < Prev_Cards_Diff) {
                 return output_t<int>(closer_Prev->playerId);
+            } else if (Next_Cards_Diff < Prev_Cards_Diff) {
+                return output_t<int>(closer_Next->playerId);
             } else {
                 int Prev_ID_Diff = abs(closer_Prev->playerId - player->playerId);
                 int Next_ID_Diff = abs(closer_Next->playerId - player->playerId);
                 if (Next_ID_Diff > Prev_ID_Diff) {
-                    return output_t<int>(closer_Next->playerId);
-                } else if (Next_ID_Diff < Prev_ID_Diff) {
                     return output_t<int>(closer_Prev->playerId);
+                } else if (Next_ID_Diff < Prev_ID_Diff) {
+                    return output_t<int>(closer_Next->playerId);
                 } else {
                     if (closer_Prev->playerId > closer_Next->playerId) {
                         return output_t<int>(closer_Prev->playerId);
