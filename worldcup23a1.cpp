@@ -279,10 +279,16 @@ StatusType world_cup_t::remove_player(int playerId) {
     }
 
 
-    if (NextPlayer == nullptr && PrevPlayer != nullptr) {
+    if (playerId = g_topScorerID && PrevPlayer != nullptr) {
         g_topScorerID = PrevPlayer->playerId;
         g_topScorerGoals = PrevPlayer->goals;
         g_topScorerCards = PrevPlayer->cards;
+    }
+    else
+    {
+        g_topScorerID = 0;
+        g_topScorerGoals = 0;
+        g_topScorerCards = 0;
     }
 
 
@@ -350,6 +356,7 @@ StatusType world_cup_t::update_player_stats(int playerId, int gamesPlayed,
             else
             {
                 team_of_player->t_topScorerId = playerId;
+                team_of_player->t_topScorerGoals = player_to_update->goals;
                 team_of_player->t_topScorerCards = player_to_update->cards;
             }
         }
@@ -491,6 +498,8 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             array_data_team1[i]->teamId = newTeamId;
             array_data_team1[i]->teamP = newTeam;
             array_data_team1[i]->gamesPlayed += team1->gamesPlayed - array_data_team1[i]->teamGamesPlayed_preAdd;
+            array_data_team1[i]->teamGamesPlayed_preAdd = 0;
+
         }
 
         int *array_key_team2 = new int[team2->playersCount];
@@ -500,6 +509,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             array_data_team2[i]->teamId = newTeamId;
             array_data_team2[i]->teamP = newTeam;
             array_data_team2[i]->gamesPlayed += team2->gamesPlayed - array_data_team2[i]->teamGamesPlayed_preAdd;
+            array_data_team2[i]->teamGamesPlayed_preAdd = 0;
         }
 
         if(cmprTeam_topScorer(team1,team2))
@@ -553,6 +563,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             array_data_team2[i]->teamId = newTeamId;
             array_data_team2[i]->teamP = team1;
             array_data_team2[i]->gamesPlayed += team2->gamesPlayed - array_data_team2[i]->teamGamesPlayed_preAdd;
+            array_data_team2[i]->teamGamesPlayed_preAdd = team1->gamesPlayed;
         }
 
 
@@ -595,6 +606,7 @@ StatusType world_cup_t::unite_teams(int teamId1, int teamId2, int newTeamId) {
             array_data_team1[i]->teamId = newTeamId;
             array_data_team1[i]->teamP = team2;
             array_data_team1[i]->gamesPlayed += team1->gamesPlayed - array_data_team1[i]->teamGamesPlayed_preAdd;
+            array_data_team1[i]->teamGamesPlayed_preAdd = team2->gamesPlayed;
         }
 
 
